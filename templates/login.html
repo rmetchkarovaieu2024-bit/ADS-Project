@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Log In - Smart Study Planner</title>
+    <style>
+        /* ---- Layout & Blocks (mirrors your register page style) ---- */
+        .login-form-container {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        .login-left {
+            flex: 2;
+            background: white;
+            padding: 60px;
+            border-radius: 12px;
+        }
+        .login-right {
+            flex: 1;
+            background: #f9f9f9;
+            padding: 40px;
+            border-radius: 12px;
+        }
+        .login-right h3 {
+            font-size: 20px;
+            margin-bottom: 25px;
+        }
+        .login-right p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        /* ---- Form Elements ---- */
+        .form-group { margin-bottom: 30px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-inline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        .checkbox input { width: 18px; height: 18px; }
+        .helper-links {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .helper-links a {
+            color: #000;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .helper-links a:hover { text-decoration: underline; }
+
+        /* ---- Buttons (kept consistent with your style) ---- */
+        .button {
+            background: #000;
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 500px;
+            display: block;
+            margin-bottom: 15px;
+            transition: background 0.3s;
+        }
+        .button:hover { background: #333; }
+        .button-secondary {
+            background: transparent;
+            color: #000;
+            border: 1px solid #ddd;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 500px;
+        }
+        .button-secondary:hover { background: #f3f3f3; }
+
+        /* ---- Navbar (copied for consistency) ---- */
+        .navbar {
+            background: #000;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .logo { font-size: 24px; color: white; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; }
+
+        /* ---- Footer (copied for consistency) ---- */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+            font-size: 13px;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 15px;
+        }
+        .footer-links a { color: #888; text-decoration: none; }
+
+        /* ---- Small helpers ---- */
+        .muted { color: #888; font-size: 13px; }
+        .split-title {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 10px;
+        }
+        .split-title h1 {
+            font-size: 28px;
+            margin: 0 0 8px 0;
+        }
+        .password-field {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            color: #555;
+        }
+        .flash {
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: #ffe7e7;
+            color: #8a1f1f;
+            border: 1px solid #f6c8c8;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        @media (max-width: 900px) {
+            .login-form-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Nav -->
+    <div class="navbar">
+        <div class="logo">✱</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/leaderboard">Leaderboard</a>
+        </div>
+    </div>
+
+    <div class="login-form-container">
+        <div class="login-left">
+            <!-- Feedback messages (Flask/Jinja) -->
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="flash">
+                  {% for message in messages %}
+                    <div>{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <div class="split-title">
+                <h1>Welcome back</h1>
+                <span class="muted">New here? <a href="/register">Create an account</a></span>
+            </div>
+            <p class="muted" style="margin-bottom: 24px;">Log in to access your study plans, progress, and leaderboard.</p>
+
+            <!-- Login form -->
+            <form method="POST" action="/login">
+                <div class="form-group">
+                    <label for="username">Username or Email</label>
+                    <input id="username" name="username" type="text" placeholder="yourname or you@example.com" autocomplete="username" required />
+                </div>
+
+                <div class="form-group password-field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" placeholder="Your password" autocomplete="current-password" required />
+                    <button type="button" class="toggle-password" aria-label="Show password" onclick="(function(btn){ const i=document.getElementById('password'); const is=i.type==='password'; i.type=is?'text':'password'; btn.textContent=is?'Hide':'Show'; })(this)">Show</button>
+                </div>
+
+                <div class="form-inline">
+                    <label class="checkbox">
+                        <input type="checkbox" name="remember" value="1" />
+                        <span>Remember me</span>
+                    </label>
+                    <div class="helper-links">
+                        <a href="/forgot-password">Forgot password?</a>
+                    </div>
+                </div>
+
+                <button class="button" type="submit">Log In</button>
+                <a class="button-secondary" href="/register">Create an account</a>
+            </form>
+        </div>
+
+        <div class="login-right">
+            <h3>Tips & Help</h3>
+            <p>Use your account to pick up where you left off: current sessions, streaks, and goals are all saved.</p>
+            <p>Forgot your password? Use the recovery link to reset it via email.</p>
+            <p>Keep your account secure: avoid using the same password you use elsewhere.</p>
+            <p>Need an account? Create one in seconds and start planning smarter.</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-links">
+            <a href="#">Contact Us</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+        </div>
+        <div>© 2025 Smart Study Planner. All rights reserved.</div>
+    </div>
+</body>
+</html>

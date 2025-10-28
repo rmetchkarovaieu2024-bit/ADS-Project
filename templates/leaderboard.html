@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Smart Study Planner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .navbar {
+            background: #000;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            color: white;
+        }
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .leaderboard-container {
+            padding: 40px;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background: #d9d9d9;
+            padding: 30px;
+            border-radius: 0 30px 30px 0;
+            min-height: 600px;
+        }
+        .menu-item {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .menu-item:hover {
+            background: #c9c9c9;
+        }
+        .menu-item.active {
+            background: #666;
+            color: white;
+        }
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            background: #888;
+            border-radius: 4px;
+        }
+        .leaderboard-content {
+            flex: 1;
+            padding: 40px;
+        }
+        .leaderboard-content h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        .leaderboard-item {
+            background: #d9d9d9;
+            padding: 20px 30px;
+            border-radius: 50px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 18px;
+        }
+        .rank {
+            font-weight: 700;
+            min-width: 60px;
+        }
+        .user-pic {
+            width: 40px;
+            height: 40px;
+            background: #666;
+            border-radius: 50%;
+        }
+        .username {
+            flex: 1;
+            font-weight: 600;
+        }
+        .points {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">✱</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/register">Register</a>
+        </div>
+    </div>
+    <div class="leaderboard-container">
+        <div class="sidebar">
+            <div class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></div>
+            <div class="menu-item"><div class="menu-icon"></div><span>Subjects</span></div>
+            <div class="menu-item"><div class="menu-icon"></div><span>Schedule</span></div>
+            <div class="menu-item"><div class="menu-icon"></div><span>Study Groups</span></div>
+            <div class="menu-item active"><div class="menu-icon"></div><span>Leaderboard</span></div>
+        </div>
+        <div class="leaderboard-content">
+            <h1>Leaderboard</h1>
+            <div class="leaderboard-item">
+                <span class="rank">1</span>
+                <div class="user-pic"></div>
+                <span class="username">StudentA</span>
+                <span class="points">1200 pts</span>
+            </div>
+            <div class="leaderboard-item">
+                <span class="rank">2</span>
+                <div class="user-pic"></div>
+                <span class="username">StudentB</span>
+                <span class="points">1000 pts</span>
+            </div>
+            <div class="leaderboard-item">
+                <span class="rank">3</span>
+                <div class="user-pic"></div>
+                <span class="username">StudentC</span>
+                <span class="points">900 pts</span>
+            </div>
+            <!-- Add more leaderboard-item divs as needed -->
+        </div>
+    </div>
+</body>
+</html>
