@@ -17,7 +17,7 @@ class User(db.Model):
 def welcome():
     return render_template('welcome.html')
 
-if __name__ == "__app__":
+#if __name__ == "__app__":
     app.run(debug=True)
 
 
