@@ -18,7 +18,7 @@ def welcome():
     return render_template('welcome.html')
 
 #if __name__ == "__app__":
-    app.run(debug=True)
+#    app.run(debug=True)
 
 
 @app.route('/login', methods=['GET', 'POST'])
