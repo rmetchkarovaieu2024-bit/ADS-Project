@@ -71,6 +71,14 @@ def register():
 def leaderboard():
     return render_template('leaderboard.html')
 
+@app.route('/weight')
+def weight():
+    return render_template('weight.html')
+
+@app.route('/schedule')
+def schedule():
+    return render_template('schedule.html')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
