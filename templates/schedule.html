@@ -50,6 +50,8 @@
             gap: 15px;
             cursor: pointer;
             transition: background 0.3s;
+            text-decoration: none;
+            color: #333;
         }
         .menu-item:hover {
             background: #c9c9c9;
@@ -128,15 +130,16 @@
     <div class="navbar">
         <div class="logo">✱</div>
         <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/dashboard">Dashboard</a>
-            <a href="/register">Register</a>
+            <a href="/">Dashboard</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/subjects">Subjects</a>
+            <a href="/schedule">Schedule</a>
         </div>
     </div>
     <div class="schedule-container">
         <div class="sidebar">
-            <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
-            <a href="/weight" class="menu-item"><div class="menu-icon"></div><span>Subjects</span></a>
+            <a href="/" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
+            <a href="/subjects" class="menu-item"><div class="menu-icon"></div><span>Subjects</span></a>
             <div class="menu-item active"><div class="menu-icon"></div><span>Schedule</span></div>
             <div class="menu-item"><div class="menu-icon"></div><span>Study Groups</span></div>
             <a href="/leaderboard" class="menu-item"><div class="menu-icon"></div><span>Leaderboard</span></a>
