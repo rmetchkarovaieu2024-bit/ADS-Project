@@ -66,6 +66,18 @@
             background: #888;
             border-radius: 4px;
         }
+        .menu-item-no {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            color: #a3a3a3;
+        }
         .leaderboard-content {
             flex: 1;
             padding: 40px;
@@ -106,7 +118,7 @@
 </head>
 <body>
     <div class="navbar">
-        <div class="logo">✱</div>
+        <div class="logo">✱ {{ user.username }}</div>
         <div class="nav-links">
             <a href="/dashboard">Dashboard</a>
             <a href="/weight">Subjects</a>
@@ -118,17 +130,17 @@
             <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
             <a href="/weight" class="menu-item"><div class="menu-icon"></div><span>Subjects</span></a>
             <a href="/schedule" class="menu-item"><div class="menu-icon"></div><span>Schedule</span></a>
-            <div class="menu-item"><div class="menu-icon"></div><span>Study Groups</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Study Groups</span></div>
             <div class="menu-item active"><div class="menu-icon"></div><span>Leaderboard</span></div>
-            <div class="menu-item"><div class="menu-icon"></div><span>Milestones</span></div>
-            <div class="menu-item"><div class="menu-icon"></div><span>Notifications</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Milestones</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Notifications</span></div>
         </div>
         <div class="leaderboard-content">
             <h1>Leaderboard</h1>
             <div class="leaderboard-item">
                 <span class="rank">1</span>
                 <div class="user-pic"></div>
-                <span class="username">Raya Metchkarova</span>
+                <span class="username">StudentA</span>
                 <span class="points">1200 pts</span>
             </div>
             <div class="leaderboard-item">
