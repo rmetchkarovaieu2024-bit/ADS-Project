@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schedule - Smart Study Planner</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -60,6 +61,18 @@
             background: #666;
             color: white;
         }
+        .menu-item-no {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            color: #a3a3a3;
+        }
         .menu-icon {
             width: 24px;
             height: 24px;
@@ -97,11 +110,13 @@
         .time-selector label {
             font-size: 16px;
         }
-        .time-selector input {
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            background: white;
+        .time-selector input[type="range"] {
+            width: 200px;
+            accent-color: #333;
+        }
+        .time-selector .duration-display {
+            font-size: 14px;
+            min-width: 80px;
         }
         .no-avail {
             display: flex;
@@ -128,141 +143,125 @@
 </head>
 <body>
     <div class="navbar">
-        <div class="logo">✱</div>
+        <div class="logo">✱ {{ user.username }}</div>
         <div class="nav-links">
-            <a href="/">Dashboard</a>
+            <a href="/dashboard">Dashboard</a>
             <a href="/leaderboard">Leaderboard</a>
-            <a href="/subjects">Subjects</a>
+            <a href="/weight">Subjects</a>
             <a href="/schedule">Schedule</a>
         </div>
     </div>
     <div class="schedule-container">
         <div class="sidebar">
-            <a href="/" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
-            <a href="/subjects" class="menu-item"><div class="menu-icon"></div><span>Subjects</span></a>
+            <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
+            <a href="/weight" class="menu-item"><div class="menu-icon"></div><span>Subjects</span></a>
             <div class="menu-item active"><div class="menu-icon"></div><span>Schedule</span></div>
-            <div class="menu-item"><div class="menu-icon"></div><span>Study Groups</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Study Groups</span></div>
             <a href="/leaderboard" class="menu-item"><div class="menu-icon"></div><span>Leaderboard</span></a>
-            <div class="menu-item"><div class="menu-icon"></div><span>Milestones</span></div>
-            <div class="menu-item"><div class="menu-icon"></div><span>Notifications</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Milestones</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Notifications</span></div>
         </div>
         <div class="schedule-content">
             <h1>Set Your Availability</h1>
-            <div class="availability-item">
-                <span class="day-name">Monday</span>
-                <div class="time-selector">
-                    <label for="start-mon">Start:</label>
-                    <input type="time" id="start-mon" value="09:00">
-                    <label for="end-mon">End:</label>
-                    <input type="time" id="end-mon" value="17:00">
+            {% set days = [
+                ('mon','Monday'),
+                ('tue','Tuesday'),
+                ('wed','Wednesday'),
+                ('thu','Thursday'),
+                ('fri','Friday'),
+                ('sat','Saturday'),
+                ('sun','Sunday')
+            ] %}
+
+            {% for code, label in days %}
+                {% set a = availabilities.get(code) %}
+                <div class="availability-item">
+                    <span class="day-name">{{ label }}</span>
+                    <div class="time-selector">
+                        <label for="duration-{{ code }}">Duration:</label>
+                        <input
+                            type="range"
+                            id="duration-{{ code }}"
+                            min="15"
+                            max="1440"
+                            step="15"
+                            value="{{ a.duration if a else 480 }}"
+                            {% if a and a.no_availability %}disabled{% endif %}
+                        >
+                        <span class="duration-display" id="display-{{ code }}">
+                            {% if a %}
+                                {% if a.no_availability %}
+
+                                {% else %}
+                                    {{ (a.duration // 60) }} h {{ (a.duration % 60) }} min
+                                {% endif %}
+                            {% else %}
+                                8 h 0 min
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="no-avail">
+                        <input
+                            type="checkbox"
+                            id="no-avail-{{ code }}"
+                            {% if a and a.no_availability %}checked{% endif %}
+                        >
+                        <label for="no-avail-{{ code }}">No Availability</label>
+                    </div>
                 </div>
-                <div class="no-avail">
-                    <input type="checkbox" id="no-avail-mon">
-                    <label for="no-avail-mon">No Availability</label>
-                </div>
-            </div>
-            <div class="availability-item">
-                <span class="day-name">Tuesday</span>
-                <div class="time-selector">
-                    <label for="start-tue">Start:</label>
-                    <input type="time" id="start-tue" value="09:00">
-                    <label for="end-tue">End:</label>
-                    <input type="time" id="end-tue" value="17:00">
-                </div>
-                <div class="no-avail">
-                    <input type="checkbox" id="no-avail-tue">
-                    <label for="no-avail-tue">No Availability</label>
-                </div>
-            </div>
-            <div class="availability-item">
-                <span class="day-name">Wednesday</span>
-                <div class="time-selector">
-                    <label for="start-wed">Start:</label>
-                    <input type="time" id="start-wed" value="09:00">
-                    <label for="end-wed">End:</label>
-                    <input type="time" id="end-wed" value="17:00">
-                </div>
-                <div class="no-avail">
-                    <input type="checkbox" id="no-avail-wed">
-                    <label for="no-avail-wed">No Availability</label>
-                </div>
-            </div>
-            <div class="availability-item">
-                <span class="day-name">Thursday</span>
-                <div class="time-selector">
-                    <label for="start-thu">Start:</label>
-                    <input type="time" id="start-thu" value="09:00">
-                    <label for="end-thu">End:</label>
-                    <input type="time" id="end-thu" value="17:00">
-                </div>
-                <div class="no-avail">
-                    <input type="checkbox" id="no-avail-thu">
-                    <label for="no-avail-thu">No Availability</label>
-                </div>
-            </div>
-            <div class="availability-item">
-                <span class="day-name">Friday</span>
-                <div class="time-selector">
-                    <label for="start-fri">Start:</label>
-                    <input type="time" id="start-fri" value="09:00">
-                    <label for="end-fri">End:</label>
-                    <input type="time" id="end-fri" value="17:00">
-                </div>
-                <div class="no-avail">
-                    <input type="checkbox" id="no-avail-fri">
-                    <label for="no-avail-fri">No Availability</label>
-                </div>
-            </div>
-            <div class="availability-item">
-                <span class="day-name">Saturday</span>
-                <div class="time-selector">
-                    <label for="start-sat">Start:</label>
-                    <input type="time" id="start-sat" value="10:00">
-                    <label for="end-sat">End:</label>
-                    <input type="time" id="end-sat" value="16:00">
-                </div>
-                <div class="no-avail">
-                    <input type="checkbox" id="no-avail-sat">
-                    <label for="no-avail-sat">No Availability</label>
-                </div>
-            </div>
-            <div class="availability-item">
-                <span class="day-name">Sunday</span>
-                <div class="time-selector">
-                    <label for="start-sun">Start:</label>
-                    <input type="time" id="start-sun" value="10:00">
-                    <label for="end-sun">End:</label>
-                    <input type="time" id="end-sun" value="16:00">
-                </div>
-                <div class="no-avail">
-                    <input type="checkbox" id="no-avail-sun">
-                    <label for="no-avail-sun">No Availability</label>
-                </div>
-            </div>
-            <button class="save-button">Save Availability</button>
+            {% endfor %}
+
+            <button class="save-button" id="save-btn">Save Availability</button>
         </div>
     </div>
     <script>
-        // Function to toggle time inputs based on checkbox
         function toggleAvailability(day) {
-            const checkbox = document.getElementById(`no-avail-${day}`);
-            const startInput = document.getElementById(`start-${day}`);
-            const endInput = document.getElementById(`end-${day}`);
-            if (checkbox.checked) {
-                startInput.disabled = true;
-                endInput.disabled = true;
-                startInput.value = '';
-                endInput.value = '';
+            const cb = document.getElementById(`no-avail-${day}`);
+            const slider = document.getElementById(`duration-${day}`);
+            const disp = document.getElementById(`display-${day}`);
+            if (cb.checked) {
+                slider.disabled = true;
             } else {
-                startInput.disabled = false;
-                endInput.disabled = false;
+                slider.disabled = false;
+                updateDisplay(day);
             }
         }
 
-        // Add event listeners for each checkbox
-        const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-        days.forEach(day => {
-            document.getElementById(`no-avail-${day}`).addEventListener('change', () => toggleAvailability(day));
+        function updateDisplay(day) {
+            const mins = parseInt(document.getElementById(`duration-${day}`).value, 10);
+            const hours = Math.floor(mins / 60);
+            const rem = mins % 60;
+            document.getElementById(`display-${day}`).textContent = `${hours} h ${rem} min`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const days = ['mon','tue','wed','thu','fri','sat','sun'];
+            days.forEach(day => {
+                updateDisplay(day);
+                document.getElementById(`no-avail-${day}`).addEventListener('change', () => toggleAvailability(day));
+                document.getElementById(`duration-${day}`).addEventListener('input', () => updateDisplay(day));
+            });
+
+            document.getElementById('save-btn').addEventListener('click', () => {
+                const data = {};
+                days.forEach(day => {
+                    const cb = document.getElementById(`no-avail-${day}`);
+                    const slider = document.getElementById(`duration-${day}`);
+                    data[day] = {
+                        no_availability: cb.checked,
+                        duration: parseInt(slider.value, 10)
+                    };
+                });
+
+                fetch('/save_availability', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify(data)
+                })
+                .then(r => r.json())
+                .then(res => alert(res.message || res.error))
+                .catch(() => alert('Save failed'));
+            });
         });
     </script>
 </body>

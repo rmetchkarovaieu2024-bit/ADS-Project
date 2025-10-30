@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, g
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -12,14 +12,27 @@ class User(db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
 
-# Only ONE home route! Let's use the welcome page as home
+class Availability(db.Model):
+    __tablename__ = 'availability'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    day = db.Column(db.String(10), nullable=False)
+    no_availability = db.Column(db.Boolean, default=False)
+    duration = db.Column(db.Integer, default=0)
+
+    user = db.relationship('User', back_populates='availabilities')
+
+# Add the back-ref on User
+User.availabilities = db.relationship(
+    'Availability',
+    order_by=Availability.id,
+    back_populates='user',
+    cascade='all, delete-orphan'
+)
+
 @app.route('/')
 def welcome():
     return render_template('welcome.html')
-
-#if __name__ == "__app__":
-#    app.run(debug=True)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -34,11 +47,10 @@ def login():
             return render_template('login.html', error='Invalid username or password')
     return render_template('login.html')
 
+
 @app.route('/dashboard')
 def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', user=g.user)
 
 @app.route('/addtestuser')
 def addtestuser():
@@ -53,31 +65,110 @@ def register():
         username = request.form['username']
         password = request.form['password']
 
-        # Check if username already exists
+        # 1) Check for duplicates
         if User.query.filter_by(username=username).first():
             flash('Username already exists. Please choose another.')
             return render_template('register.html')
 
-        # Add user to database
+        # 2) Create & commit the user so new_user.id is set
         new_user = User(username=username, password=password)
         db.session.add(new_user)
         db.session.commit()
+
+        # 3) Now seed default availability (8 h = 480 min)
+        default_days = ['mon','tue','wed','thu','fri','sat','sun']
+        for code in default_days:
+            db.session.add(Availability(
+                user_id=new_user.id,
+                day=code,
+                no_availability=False,
+                duration=480
+            ))
+        db.session.commit()
+
+        # 4) Redirect properly to the 'login' endpoint
         flash('Registration successful! You can now log in.')
-        return redirect(url_for('login'))  # Make sure you have a 'login' route
+        return redirect(url_for('login'))
 
     return render_template('register.html')
 
+
 @app.route('/leaderboard')
 def leaderboard():
-    return render_template('leaderboard.html')
+    return render_template('leaderboard.html', user=g.user)
 
 @app.route('/weight')
 def weight():
-    return render_template('weight.html')
+    return render_template('weight.html', user=g.user)
+
+
+@app.before_request
+def load_current_user():
+    g.user = None
+    if 'user_id' in session:
+        g.user = User.query.get(session['user_id'])
 
 @app.route('/schedule')
 def schedule():
-    return render_template('schedule.html')
+    rows     = Availability.query.filter_by(user_id=g.user.id).all()
+    existing = {r.day for r in rows}
+
+    # 2) seed any missing days (so every user always has 7 rows)
+    for code in ['mon','tue','wed','thu','fri','sat','sun']:
+        if code not in existing:
+            db.session.add(Availability(
+                user_id=g.user.id,
+                day=code,
+                no_availability=False,
+                duration=480
+            ))
+    if len(existing) < 7:
+        db.session.commit()
+        rows = Availability.query.filter_by(user_id=g.user.id).all()
+
+    availabilities = {r.day: r for r in rows}
+
+    # 3) pass BOTH user and their availabilities to the template
+    return render_template(
+        'schedule.html',
+        user=g.user,
+        availabilities=availabilities
+    )
+
+# Route to save availability
+@app.route('/save_availability', methods=['POST'])
+def save_availability():
+    print("Save route called")  # Debug: Check if route is hit
+    data = request.get_json() or {}
+    print(f"Received data: {data}")  # Debug: See what data was sent
+    user_id = session.get('user_id')
+    if not user_id:
+        print("No user_id in session")  # Debug: Login issue
+        return jsonify(error="Not logged in"), 403
+
+    # Clear existing for this user
+    Availability.query.filter_by(user_id=user_id).delete()
+    print(f"Cleared existing for user {user_id}")  # Debug
+
+    # Insert fresh
+    for day, info in data.items():
+        print(f"Saving {day}: {info}")  # Debug: Per-day data
+        avail = Availability(
+            user_id=user_id,
+            day=day,
+            no_availability=info.get('no_availability', False),
+            duration=info.get('duration', 0)
+        )
+        db.session.add(avail)
+
+    try:
+        db.session.commit()
+        print("Commit successful")  # Debug
+        return jsonify(message="Availability saved!")
+    except Exception as e:
+        print(f"Commit failed: {e}")  # Debug: DB error
+        db.session.rollback()
+        return jsonify(error="Save failed"), 500
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,719 +1,89 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Smart Study Planner</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; color: #333; }
-        .navbar { background: #000; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; color: white; }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { color: white; text-decoration: none; font-size: 14px; }
-        .dashboard-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 30px; max-width: 1600px; margin: 0 auto; }
-        .dashboard-card { background: #ddd; padding: 25px; border-radius: 12px; }
-        .dashboard-card-updates { background: #a3a3a3; padding: 25px; border-radius: 12px; }
-        .dashboard-card h3 { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .calendar { background: #ccc; padding: 20px; border-radius: 8px; }
-        .calendar-header { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center; }
-        .calendar-header a { text-decoration: none; color: inherit; cursor: pointer; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
-        .calendar-day { padding: 8px; font-size: 14px; }
-        .calendar-day.header { font-weight: 600; }
-        .calendar-day.active { background: #000; color: white; border-radius: 50%; }
-        .calendar-day.inactive { color: #999; }
-        .session-table { width: 100%; }
-        .session-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; padding: 12px 0; border-bottom: 1px solid #bbb; align-items: center; font-size: 14px; }
-        .session-row.header { font-weight: 600; }
-        .status-badge { background: #000; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; display: inline-block; }
-        .action-icons { display: flex; gap: 8px; }
-        .progress-item { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; }
-        .alert-item { display: flex; align-items: center; gap: 15px; padding: 12px; background: #c9c9c9; border-radius: 8px; margin-bottom: 10px; }
-        .alert-icon { width: 40px; height: 40px; background: #000; border-radius: 50%; flex-shrink: 0; }
-        .milestone-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .milestone-item { text-align: center; }
-        .milestone-icon { width: 50px; height: 50px; background: #000; border-radius: 8px; margin: 0 auto 10px; }
-        .card-full { grid-column: 1 / -1; }
-        .card-span-2 { grid-column: span 2; }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="logo">✱</div>
-        <div class="nav-links">
-            <a href="/">Dashboard</a>
-            <a href="/leaderboard">Leaderboard</a>
-            <a href="/subjects">Subjects</a>
-            <a href="/schedule">Schedule</a>
-        </div>
-    </div>
-    <div class="dashboard-container">
-        <div class="dashboard-card">
-            <div class="calendar">
-                {{ calendar_html | safe }}
-            </div>
-        </div>
-        <div class="dashboard-card card-span-2">
-            <h3>Your study sessions</h3>
-            <div class="session-table">
-                <div class="session-row header">
-                    <div>Subject</div>
-                    <div>Next session</div>
-                    <div>Status</div>
-                    <div>Next Session</div>
-                </div>
-                <div class="session-row">
-                    <div>ALGORITHMS & DATA STRUCTURES</div>
-                    <div>Today</div>
-                    <div><span class="status-badge in-progress">in progress</span></div>
-                    <div class="action-icons">✗ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>MATHEMATICS FOR DATA MANAGEMENT AND ANALYSIS</div>
-                    <div>Tomorrow</div>
-                    <div><span class="status-badge in-progress">in progress</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>PROBABILITY & STATISTICS FOR DATA MANAGEMENT AND ANALYSIS</div>
-                    <div>Tomorrow</div>
-                    <div><span class="status-badge not-started">not started</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>PROGRAMMING FOR DATA MANAGEMENT & ANALYSIS</div>
-                    <div>14/10/2023</div>
-                    <div><span class="status-badge not-started">not started</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>TECHNOLOGY WITH IMPACT</div>
-                    <div>16/10/2023</div>
-                    <div><span class="status-badge not-started">not started</span></div>
-                    <div class="action-icons">✗ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>TIME SERIES ANALYSIS</div>
-                    <div>18/10/2023</div>
-                    <div><span class="status-badge in-progress">in progress</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-            </div>
-        </div>
-        <div class="dashboard-card-updates">
-            <h3>Alerts</h3>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div><div style="font-weight:600;">You have new subjects to review.</div></div>
-            </div>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div><div style="font-weight:600;">Your study plan is ready!</div></div>
-            </div>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div><div style="font-weight:600;">New study sessions are scheduled!</div></div>
-            </div>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div><div style="font-weight:600;">Alex shared a new subject.</div></div>
-            </div>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div><div style="font-weight:600;">Your study plan needs adjustments.</div></div>
-            </div>
-        </div>
-        <div class="dashboard-card">
-            <h3>Your progress</h3>
-            <div class="progress-item">
-                <span>Study sessions</span>
-                <strong>5</strong>
-            </div>
-            <div class="progress-item">
-                <span>Completed sessions</span>
-                <strong>12</strong>
-            </div>
-            <div class="progress-item">
-                <span>Pending tasks</span>
-                <strong>9</strong>
-            </div>
-            <div class="progress-item">
-                <span>Total study hours</span>
-                <strong>12:45:30</strong>
-            </div>
-            <div class="progress-item">
-                <span>Upcoming sessions</span>
-                <strong>2</strong>
-            </div>
-            <div class="progress-item">
-                <span>Organized subjects</span>
-                <strong>1</strong>
-            </div>
-        </div>
-        <div class="dashboard-card-updates">
-            <h3>New learning modules</h3>
-            <div class="session-table">
-                <div class="session-row header">
-                    <div>Subject</div>
-                    <div>Weightag</div>
-                    <div>Status</div>
-                    <div>Study Goals</div>
-                </div>
-                <div class="session-row">
-                    <div>Interactive Calendar</div>
-                    <div>01/05/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">View</button></div>
-                    <div>✓ ⓘ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>Progress Tracker</div>
-                    <div>15/05/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">Edit</button></div>
-                    <div>✓ ⓘ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>Study Groups</div>
-                    <div>01/06/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">View All</button></div>
-                    <div>✓ ⓘ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>Personalized Scheduling</div>
-                    <div>01/07/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">Join</button></div>
-                    <div>✗ ⓘ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>Study Cases</div>
-                    <div>01/07/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">Join</button></div>
-                    <div>✗ ⓘ ▶</div>
-                </div>
-            </div>
-        </div>
-        <div class="dashboard-card-updates card-full">
-            <h3>Your milestones</h3>
-            <div class="milestone-grid">
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Excellent Start!</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Quick Learner!</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Achievement</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Knowledge Seeker</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Beginner</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Consistency</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Night Owl</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Early Achiever</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Change this to something random!
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+db = SQLAlchemy(app)
+
+# Database model
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+
+# Only ONE home route! Let's use the welcome page as home
+@app.route('/')
+def welcome():
+    return render_template('welcome.html')
+
+#if __name__ == "__app__":
+#    app.run(debug=True)
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username, password=password).first()
+        if user:
+            session['user_id'] = user.id
+            return redirect(url_for('dashboard'))
+        else:
+            return render_template('login.html', error='Invalid username or password')
+    return render_template('login.html')
 
------------------------------
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Smart Study Planner</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-        }
-        .navbar {
-            background: #000;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            font-size: 24px;
-            color: white;
-        }
-        .nav-links {
-            display: flex;
-            gap: 30px;
-        }
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .dashboard-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            padding: 30px;
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-        .dashboard-card {
-            background: #ddd;
-            padding: 25px;
-            border-radius: 12px;
-        }
-         .dashboard-card-updates {
-            background: #a3a3a3;
-            padding: 25px;
-            border-radius: 12px;
-        }
-        .dashboard-card h3 {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .calendar {
-            background: #ccc;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            align-items: center;
-        }
-        .calendar-header span {
-            cursor: pointer;
-            font-size: 18px;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            text-align: center;
-        }
-        .calendar-day {
-            padding: 8px;
-            font-size: 14px;
-        }
-        .calendar-day.header {
-            font-weight: 600;
-        }
-        .calendar-day.active {
-            background: #000;
-            color: white;
-            border-radius: 50%;
-        }
-        .calendar-day.inactive {
-            color: #999;
-        }
-        .session-table {
-            width: 100%;
-        }
-        .session-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 10px;
-            padding: 12px 0;
-            border-bottom: 1px solid #bbb;
-            align-items: center;
-            font-size: 14px;
-        }
-        .session-row.header {
-            font-weight: 600;
-        }
-        .status-badge {
-            background: #000;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            display: inline-block;
-        }
-        .status-badge.not-started {
-            background: #000;
-        }
-        .status-badge.in-progress {
-            background: #000;
-        }
-        .action-icons {
-            display: flex;
-            gap: 8px;
-        }
-        .progress-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            font-size: 14px;
-        }
-        .alert-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px;
-            background: #c9c9c9;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-        .alert-icon {
-            width: 40px;
-            height: 40px;
-            background: #000;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .milestone-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
-        .milestone-item {
-            text-align: center;
-        }
-        .milestone-icon {
-            width: 50px;
-            height: 50px;
-            background: #000;
-            border-radius: 8px;
-            margin: 0 auto 10px;
-        }
-        .stats-circle {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: #000;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-        }
-        .stats-circle .number {
-            font-size: 32px;
-            font-weight: 700;
-        }
-        .stats-circle .label {
-            font-size: 12px;
-        }
-        .card-full {
-            grid-column: 1 / -1;
-        }
-        .card-span-2 {
-            grid-column: span 2;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="logo">✱</div>
-        <div class="nav-links">
-            <a href="/leaderboard">Leaderboard</a>
-            <a href="/weight">Subjects</a>
-            <a href="/schedule">Schedule</a>
-        </div>
-    </div>
-    <div class="dashboard-container">
-        <div class="dashboard-card">
-            <div class="calendar">
-                <div class="calendar-header">
-                    <span id="prev-month">◀</span>
-                    <strong id="month-year">October 2023</strong>
-                    <span id="next-month">▶</span>
-                </div>
-                <div class="calendar-grid" id="calendar-grid">
-                    <div class="calendar-day header">S</div>
-                    <div class="calendar-day header">M</div>
-                    <div class="calendar-day header">T</div>
-                    <div class="calendar-day header">W</div>
-                    <div class="calendar-day header">T</div>
-                    <div class="calendar-day header">F</div>
-                    <div class="calendar-day header">S</div>
-                    <!-- Days will be generated by JavaScript -->
-                </div>
-            </div>
-        </div>
-        <div class="dashboard-card card-span-2">
-            <h3>Your study sessions</h3>
-            <div class="session-table">
-                <div class="session-row header">
-                    <div>Subject</div>
-                    <div>Next session</div>
-                    <div>Status</div>
-                    <div>Next Session</div>
-                </div>
-                <div class="session-row">
-                    <div>ALGORITHMS & DATA STRUCTURES</div>
-                    <div>Today</div>
-                    <div><span class="status-badge in-progress">in progress</span></div>
-                    <div class="action-icons">✗ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>MATHEMATICS FOR DATA MANAGEMENT AND ANALYSIS</div>
-                    <div>Tomorrow</div>
-                    <div><span class="status-badge in-progress">in progress</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>PROBABILITY & STATISTICS FOR DATA MANAGEMENT AND ANALYSIS</div>
-                    <div>Tomorrow</div>
-                    <div><span class="status-badge not-started">not started</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>PROGRAMMING FOR DATA MANAGEMENT & ANALYSIS</div>
-                    <div>14/10/2023</div>
-                    <div><span class="status-badge not-started">not started</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>TECHNOLOGY WITH IMPACT</div>
-                    <div>16/10/2023</div>
-                    <div><span class="status-badge not-started">not started</span></div>
-                    <div class="action-icons">✗ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>TIME SERIES ANALYSIS</div>
-                    <div>18/10/2023</div>
-                    <div><span class="status-badge in-progress">in progress</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-            </div>
-        </div>
-        <div class="dashboard-card-updates">
-            <h3>Alerts</h3>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div>
-                    <div style="font-weight: 600;">You have new subjects to review.</div>
-                </div>
-            </div>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div>
-                    <div style="font-weight: 600;">Your study plan is ready!</div>
-                </div>
-            </div>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div>
-                    <div style="font-weight: 600;">New study sessions are scheduled!</div>
-                </div>
-            </div>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div>
-                    <div style="font-weight: 600;">Alex shared a new subject.</div>
-                </div>
-            </div>
-            <div class="alert-item">
-                <div class="alert-icon"></div>
-                <div>
-                    <div style="font-weight: 600;">Your study plan needs adjustments.</div>
-                </div>
-            </div>
-        </div>
-        <div class="dashboard-card">
-            <h3>Your progress</h3>
-            <div class="progress-item">
-                <span>Study sessions</span>
-                <strong>5</strong>
-            </div>
-            <div class="progress-item">
-                <span>Completed sessions</span>
-                <strong>12</strong>
-            </div>
-            <div class="progress-item">
-                <span>Pending tasks</span>
-                <strong>9</strong>
-            </div>
-            <div class="progress-item">
-                <span>Total study hours</span>
-                <strong>12:45:30</strong>
-            </div>
-            <div class="progress-item">
-                <span>Upcoming sessions</span>
-                <strong>2</strong>
-            </div>
-            <div class="progress-item">
-                <span>Organized subjects</span>
-                <strong>1</strong>
-            </div>
-        </div>
-        <div class="dashboard-card-updates">
-            <h3>New learning modules</h3>
-            <div class="session-table">
-                <div class="session-row header">
-                    <div>Subject</div>
-                    <div>Weightag</div>
-                    <div>Status</div>
-                    <div>Study Goals</div>
-                </div>
-                <div class="session-row">
-                    <div>Interactive Calendar</div>
-                    <div>01/05/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">View</button></div>
-                    <div>✓ ⓘ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>Progress Tracker</div>
-                    <div>15/05/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">Edit</button></div>
-                    <div>✓ ⓘ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>Study Groups</div>
-                    <div>01/06/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">View All</button></div>
-                    <div>✓ ⓘ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>Personalized Scheduling</div>
-                    <div>01/07/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">Join</button></div>
-                    <div>✗ ⓘ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>Study Cases</div>
-                    <div>01/07/2023</div>
-                    <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">Join</button></div>
-                    <div>✗ ⓘ ▶</div>
-                </div>
-            </div>
-        </div>
+@app.route('/dashboard')
+def dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('dashboard.html')
 
-        <div class="dashboard-card-updates card-full">
-            <h3>Your milestones</h3>
-            <div class="milestone-grid">
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Excellent Start!</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Quick Learner!</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Achievement</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Knowledge Seeker</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Beginner</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Consistency</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Night Owl</div>
-                </div>
-                <div class="milestone-item">
-                    <div class="milestone-icon"></div>
-                    <div style="font-size: 14px; font-weight: 600;">Early Achiever</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        const monthNames = ["January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"];
+@app.route('/addtestuser')
+def addtestuser():
+    u = User(username="testuser", password="testpass")
+    db.session.add(u)
+    db.session.commit()
+    return "Test user added!"
 
-        let currentDate = new Date();
-        let currentYear = currentDate.getFullYear();
-        let currentMonth = currentDate.getMonth();
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
 
-        const monthYearElement = document.getElementById('month-year');
-        const calendarGrid = document.getElementById('calendar-grid');
-        const prevMonthButton = document.getElementById('prev-month');
-        const nextMonthButton = document.getElementById('next-month');
+        # Check if username already exists
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists. Please choose another.')
+            return render_template('register.html')
 
-        function renderCalendar(year, month) {
-            // Clear existing days except headers
-            const headers = calendarGrid.querySelectorAll('.header');
-            calendarGrid.innerHTML = '';
-            headers.forEach(header => calendarGrid.appendChild(header));
+        # Add user to database
+        new_user = User(username=username, password=password)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Registration successful! You can now log in.')
+        return redirect(url_for('login'))  # Make sure you have a 'login' route
 
-            // Get first day of the month and number of days
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+    return render_template('register.html')
 
-            // Add empty cells for days before the first day of the month
-            for (let i = 0; i < firstDay; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'calendar-day inactive';
-                calendarGrid.appendChild(emptyDay);
-            }
+@app.route('/leaderboard')
+def leaderboard():
+    return render_template('leaderboard.html')
 
-            // Add days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day';
-                dayElement.textContent = day;
+@app.route('/weight')
+def weight():
+    return render_template('weight.html')
 
-                // Highlight current day
-                if (year === currentDate.getFullYear() && month === currentDate.getMonth() && day === currentDate.getDate()) {
-                    dayElement.classList.add('active');
-                }
+@app.route('/schedule')
+def schedule():
+    return render_template('schedule.html')
 
-                calendarGrid.appendChild(dayElement);
-            }
 
-            // Update month-year display
-            monthYearElement.textContent = `${monthNames[month]} ${year}`;
-        }
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
 
-        prevMonthButton.addEventListener('click', () => {
-            currentMonth--;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            }
-            renderCalendar(currentYear, currentMonth);
-        });
 
-        nextMonthButton.addEventListener('click', () => {
-            currentMonth++;
-            if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
-            renderCalendar(currentYear, currentMonth);
-        });
-
-        // Initial render
-        renderCalendar(currentYear, currentMonth);
-    </script>
-</body>
-</html>
+-------------------------------------------------

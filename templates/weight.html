@@ -66,6 +66,18 @@
             background: #888;
             border-radius: 4px;
         }
+        .menu-item-no {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            color: #a3a3a3;
+        }
         .subjects-content {
             flex: 1;
             padding: 40px;
@@ -120,7 +132,7 @@
 </head>
 <body>
     <div class="navbar">
-        <div class="logo">✱</div>
+        <div class="logo">✱ {{ user.username }}</div>
         <div class="nav-links">
             <a href="/dashboard">Dashboard</a>
             <a href="/leaderboard">Leaderboard</a>
@@ -132,10 +144,10 @@
             <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
             <div class="menu-item active"><div class="menu-icon"></div><span>Subjects</span></div>
             <a href="/schedule" class="menu-item"><div class="menu-icon"></div><span>Schedule</span></a>
-            <div class="menu-item"><div class="menu-icon"></div><span>Study Groups</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Study Groups</span></div>
             <a href="/leaderboard" class="menu-item"><div class="menu-icon"></div><span>Leaderboard</span></a>
-            <div class="menu-item"><div class="menu-icon"></div><span>Milestones</span></div>
-            <div class="menu-item"><div class="menu-icon"></div><span>Notifications</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Milestones</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Notifications</span></div>
         </div>
         <div class="subjects-content">
             <h1>Subjects & Weightage</h1>
