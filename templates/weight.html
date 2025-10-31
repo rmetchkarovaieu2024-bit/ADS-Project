@@ -134,9 +134,9 @@
     <div class="navbar">
         <div class="logo">✱ {{ user.username }}</div>
         <div class="nav-links">
-            <a href="/dashboard">Dashboard</a>
             <a href="/leaderboard">Leaderboard</a>
             <a href="/schedule">Schedule</a>
+            <a href="/dashboard">Dashboard</a>
         </div>
     </div>
     <div class="subjects-container">
@@ -151,86 +151,43 @@
         </div>
         <div class="subjects-content">
             <h1>Subjects & Weightage</h1>
-            <div class="subject-item">
-                <span class="subject-name">ALGORITHMS & DATA STRUCTURES</span>
-                <div class="weightage-selector">
-                    <label for="weight-1">Weightage:</label>
-                    <select id="weight-1">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3" selected>3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
+            {% for sw in subject_weights %}
+                <div class="subject-item">
+                  <span class="subject-name">{{ sw.subject }}</span>
+                    <div class="weightage-selector">
+                        <label for="weight-{{ loop.index }}">Weightage:</label>
+                        <select id="weight-{{ loop.index }}">
+                          {% for i in range(1,6) %}
+                            <option value="{{ i }}"
+                              {% if sw.weight == i %}selected{% endif %}>
+                              {{ i }}
+                            </option>
+                          {% endfor %}
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div class="subject-item">
-                <span class="subject-name">MATHEMATICS FOR DATA MANAGEMENT AND ANALYSIS</span>
-                <div class="weightage-selector">
-                    <label for="weight-2">Weightage:</label>
-                    <select id="weight-2">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3" selected>3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
-            </div>
-            <div class="subject-item">
-                <span class="subject-name">PROBABILITY & STATISTICS FOR DATA MANAGEMENT AND ANALYSIS</span>
-                <div class="weightage-selector">
-                    <label for="weight-3">Weightage:</label>
-                    <select id="weight-3">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3" selected>3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
-            </div>
-            <div class="subject-item">
-                <span class="subject-name">PROGRAMMING FOR DATA MANAGEMENT & ANALYSIS</span>
-                <div class="weightage-selector">
-                    <label for="weight-4">Weightage:</label>
-                    <select id="weight-4">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3" selected>3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
-            </div>
-            <div class="subject-item">
-                <span class="subject-name">TECHNOLOGY WITH IMPACT</span>
-                <div class="weightage-selector">
-                    <label for="weight-5">Weightage:</label>
-                    <select id="weight-5">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3" selected>3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
-            </div>
-            <div class="subject-item">
-                <span class="subject-name">TIME SERIES ANALYSIS</span>
-                <div class="weightage-selector">
-                    <label for="weight-6">Weightage:</label>
-                    <select id="weight-6">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3" selected>3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
-            </div>
-            <button class="save-button">Save Weightages</button>
+            {% endfor %}
+            <button class="save-button" id="save-btn">Save Weightages</button>
         </div>
     </div>
+    <script> # javasctipt code
+        document.getElementById('save-btn').addEventListener('click', () => {
+          const data = {};
+            document.querySelectorAll('.subject-item').forEach((el, idx) => {
+            const subj = el.querySelector('.subject-name').textContent;
+            const sel  = el.querySelector('select');
+            data[subj] = parseInt(sel.value, 10);
+          });
+
+          fetch('/save_weights', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+          })
+          .then(r => r.json())
+          .then(res => alert(res.message || res.error))
+          .catch(_ => alert('Save failed'));
+        });
+    </script>
 </body>
 </html>

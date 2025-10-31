@@ -22,13 +22,45 @@ class Availability(db.Model):
 
     user = db.relationship('User', back_populates='availabilities')
 
-# Add the back-ref on User
 User.availabilities = db.relationship(
     'Availability',
     order_by=Availability.id,
     back_populates='user',
     cascade='all, delete-orphan'
 )
+
+class SubjectWeight(db.Model):
+    __tablename__ = 'subject_weight'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    weight = db.Column(db.Integer, nullable=False, default=3)
+
+    user = db.relationship('User', back_populates='subject_weights')
+
+User.subject_weights = db.relationship(
+    'SubjectWeight',
+    order_by=SubjectWeight.id,
+    back_populates='user',
+    cascade='all, delete-orphan'
+)
+# ----------------------------------------------------------#
+# Defaults
+# Days
+default_days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+
+# Subjects
+default_subjects = [
+    "ALGORITHMS & DATA STRUCTURES",
+    "MATHEMATICS FOR DATA MANAGEMENT AND ANALYSIS",
+    "PROBABILITY & STATISTICS FOR DATA MANAGEMENT AND ANALYSIS",
+    "PROGRAMMING FOR DATA MANAGEMENT & ANALYSIS",
+    "TECHNOLOGY WITH IMPACT",
+    "TIME SERIES ANALYSIS"
+]
+
+
+# ----------------------------------------------------------#
 
 @app.route('/')
 def welcome():
@@ -65,28 +97,33 @@ def register():
         username = request.form['username']
         password = request.form['password']
 
-        # 1) Check for duplicates
-        if User.query.filter_by(username=username).first():
+        if User.query.filter_by(username=username).first(): # check if ist existing
             flash('Username already exists. Please choose another.')
             return render_template('register.html')
 
-        # 2) Create & commit the user so new_user.id is set
         new_user = User(username=username, password=password)
         db.session.add(new_user)
         db.session.commit()
 
-        # 3) Now seed default availability (8 h = 480 min)
-        default_days = ['mon','tue','wed','thu','fri','sat','sun']
+    # Availability based on user
         for code in default_days:
             db.session.add(Availability(
                 user_id=new_user.id,
                 day=code,
                 no_availability=False,
-                duration=480
+                duration=120 # default availability (2 h = 120 min)
             ))
         db.session.commit()
 
-        # 4) Redirect properly to the 'login' endpoint
+    # Subject based on user
+        for subj in default_subjects:
+            db.session.add(SubjectWeight(
+                user_id=new_user.id,
+                subject=subj,
+                weight=3
+            ))
+        db.session.commit()
+
         flash('Registration successful! You can now log in.')
         return redirect(url_for('login'))
 
@@ -99,8 +136,42 @@ def leaderboard():
 
 @app.route('/weight')
 def weight():
-    return render_template('weight.html', user=g.user)
+    rows = SubjectWeight.query.filter_by(user_id=g.user.id).all()
+    existing = {r.subject for r in rows}
 
+    for subj in default_subjects:
+        if subj not in existing:
+            db.session.add(SubjectWeight(
+                user_id=g.user.id,
+                subject=subj,
+                weight=3
+            ))
+    if len(existing) < len(default_subjects):
+        db.session.commit()
+        rows = SubjectWeight.query.filter_by(user_id=g.user.id).all()
+
+    weights = {r.subject: r for r in rows}
+    ordered = [weights[s] for s in default_subjects]
+
+    return render_template('weight.html', user=g.user, subject_weights=ordered)
+
+@app.route('/save_weights', methods=['POST'])
+def save_weights():
+    if not g.user:
+        return jsonify(error="Not logged in"), 403
+
+    data = request.get_json() or {}
+
+    SubjectWeight.query.filter_by(user_id=g.user.id).delete()
+
+    for subj, wt in data.items():
+        db.session.add(SubjectWeight(
+            user_id=g.user.id,
+            subject=subj,
+            weight=wt
+        ))
+    db.session.commit()
+    return jsonify(message="Weights saved!")
 
 @app.before_request
 def load_current_user():
@@ -110,10 +181,9 @@ def load_current_user():
 
 @app.route('/schedule')
 def schedule():
-    rows     = Availability.query.filter_by(user_id=g.user.id).all()
+    rows = Availability.query.filter_by(user_id=g.user.id).all()
     existing = {r.day for r in rows}
 
-    # 2) seed any missing days (so every user always has 7 rows)
     for code in ['mon','tue','wed','thu','fri','sat','sun']:
         if code not in existing:
             db.session.add(Availability(
@@ -128,8 +198,7 @@ def schedule():
 
     availabilities = {r.day: r for r in rows}
 
-    # 3) pass BOTH user and their availabilities to the template
-    return render_template(
+    return render_template( # see availability per person
         'schedule.html',
         user=g.user,
         availabilities=availabilities
@@ -138,9 +207,9 @@ def schedule():
 # Route to save availability
 @app.route('/save_availability', methods=['POST'])
 def save_availability():
-    print("Save route called")  # Debug: Check if route is hit
+    # print("Save route called")  # Debug: Check if route is hit
     data = request.get_json() or {}
-    print(f"Received data: {data}")  # Debug: See what data was sent
+   #  print(f"Received data: {data}")  # Debug: See what data was sent
     user_id = session.get('user_id')
     if not user_id:
         print("No user_id in session")  # Debug: Login issue
@@ -148,11 +217,11 @@ def save_availability():
 
     # Clear existing for this user
     Availability.query.filter_by(user_id=user_id).delete()
-    print(f"Cleared existing for user {user_id}")  # Debug
+    # print(f"Cleared existing for user {user_id}")  # Debug
 
-    # Insert fresh
+    # Insert new data
     for day, info in data.items():
-        print(f"Saving {day}: {info}")  # Debug: Per-day data
+        #print(f"Saving {day}: {info}")  # Debug: Per-day data
         avail = Availability(
             user_id=user_id,
             day=day,
@@ -163,10 +232,10 @@ def save_availability():
 
     try:
         db.session.commit()
-        print("Commit successful")  # Debug
+        #print("Commit successful")  # Debug
         return jsonify(message="Availability saved!")
     except Exception as e:
-        print(f"Commit failed: {e}")  # Debug: DB error
+        #print(f"Commit failed: {e}")  # Debug: DB error
         db.session.rollback()
         return jsonify(error="Save failed"), 500
 
