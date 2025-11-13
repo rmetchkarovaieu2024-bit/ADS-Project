@@ -1,3 +1,31 @@
+{% macro render_node(node) %}
+    {% if node %}
+        <div class="tree-node">
+            <div class="node-content">
+                <div class="username">{{ node.username }}</div>
+                <div class="points">{{ node.points }} pts</div>
+            </div>
+            {% if node.left or node.right %}
+                <div class="node-children">
+                    {% if node.left %}
+                        <div class="child-wrapper">
+                            <div class="node-label">LEFT (Lower)</div>
+                            {{ render_node(node.left) }}
+                        </div>
+                    {% endif %}
+
+                    {% if node.right %}
+                        <div class="child-wrapper">
+                            <div class="node-label">RIGHT (Higher)</div>
+                            {{ render_node(node.right) }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endmacro %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,11 +33,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard - Smart Study Planner</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #f5f5f5;
             color: #333;
         }
+
         .navbar {
             background: #000;
             padding: 15px 40px;
@@ -17,30 +52,41 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .logo {
             font-size: 24px;
             color: white;
         }
+
         .nav-links {
             display: flex;
             gap: 30px;
         }
+
         .nav-links a {
             color: white;
             text-decoration: none;
             font-size: 14px;
+            transition: opacity 0.3s;
         }
+
+        .nav-links a:hover {
+            opacity: 0.7;
+        }
+
         .leaderboard-container {
             padding: 40px;
             display: flex;
         }
+
         .sidebar {
             width: 250px;
-            background: #d9d9d9;
+            background: #e9e9e9;
             padding: 30px;
             border-radius: 0 30px 30px 0;
             min-height: 600px;
         }
+
         .menu-item {
             padding: 15px 20px;
             margin-bottom: 10px;
@@ -53,19 +99,16 @@
             text-decoration: none;
             color: #333;
         }
+
         .menu-item:hover {
             background: #c9c9c9;
         }
+
         .menu-item.active {
             background: #666;
             color: white;
         }
-        .menu-icon {
-            width: 24px;
-            height: 24px;
-            background: #888;
-            border-radius: 4px;
-        }
+
         .menu-item-no {
             padding: 15px 20px;
             margin-bottom: 10px;
@@ -78,41 +121,291 @@
             text-decoration: none;
             color: #a3a3a3;
         }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            background: #888;
+            border-radius: 4px;
+        }
+
         .leaderboard-content {
             flex: 1;
             padding: 40px;
         }
-        .leaderboard-content h1 {
+
+        .header h1 {
             font-size: 48px;
             font-weight: 700;
-            margin-bottom: 40px;
+            margin-bottom: 10px;
         }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .view-toggle button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: transparent;
+            color: #666;
+        }
+
+        .view-toggle button.active {
+            background: #000;
+            color: white;
+        }
+
+        .view-toggle button:hover:not(.active) {
+            background: #f0f0f0;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Tree View Styles */
+        .tree-visualization {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            min-height: 400px;
+        }
+
+        .tree-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .tree-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 20px;
+        }
+
+        .node-content {
+            background: #888;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            min-width: 140px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .node-content .username {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .node-content .points {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .node-children {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            position: relative;
+            margin-top: 30px;
+        }
+
+        .child-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .node-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        /* Leaderboard View Styles */
+        .leaderboard-list {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
         .leaderboard-item {
-            background: #d9d9d9;
-            padding: 20px 30px;
-            border-radius: 50px;
-            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 20px;
-            font-size: 18px;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            background: #d9d9d9;
+            transition: all 0.3s;
         }
-        .rank {
+
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .leaderboard-item.current-user {
+            border: 3px solid #666;
+            background: #e6e6e6;
+        }
+
+        .rank-number {
+            font-size: 28px;
             font-weight: 700;
             min-width: 60px;
+            text-align: center;
+            color: #333;
         }
-        .user-pic {
-            width: 40px;
-            height: 40px;
-            background: #666;
+
+        .rank-1 .rank-number { color: #FFD700; }
+        .rank-2 .rank-number { color: #C0C0C0; }
+        .rank-3 .rank-number { color: #CD7F32; }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
+            background: #888;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
         }
-        .username {
+
+        .user-info {
             flex: 1;
-            font-weight: 600;
         }
-        .points {
+
+        .username-text {
+            font-size: 18px;
             font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .user-badge {
+            display: inline-block;
+            background: #666;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .points-display {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .controls {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .controls h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #000;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .info-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .info-section h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .step-item {
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-left: 3px solid #666;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
         }
     </style>
 </head>
@@ -120,43 +413,132 @@
     <div class="navbar">
         <div class="logo">✱ {{ user.username }}</div>
         <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/study_log">Study Log</a>
             <a href="/weight">Subjects</a>
             <a href="/schedule">Schedule</a>
-            <a href="/dashboard">Dashboard</a>
+            <a href="/leaderboard">Leaderboard</a>
         </div>
     </div>
+
     <div class="leaderboard-container">
         <div class="sidebar">
             <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
             <a href="/weight" class="menu-item"><div class="menu-icon"></div><span>Subjects</span></a>
             <a href="/schedule" class="menu-item"><div class="menu-icon"></div><span>Schedule</span></a>
+            <a href="/study_log" class="menu-item"><div class="menu-icon"></div><span>Study Log</span></a>
             <div class="menu-item-no"><div class="menu-icon"></div><span>Study Groups</span></div>
             <div class="menu-item active"><div class="menu-icon"></div><span>Leaderboard</span></div>
             <div class="menu-item-no"><div class="menu-icon"></div><span>Milestones</span></div>
             <div class="menu-item-no"><div class="menu-icon"></div><span>Notifications</span></div>
         </div>
+
         <div class="leaderboard-content">
-            <h1>Leaderboard</h1>
-            <div class="leaderboard-item">
-                <span class="rank">1</span>
-                <div class="user-pic"></div>
-                <span class="username">StudentA</span>
-                <span class="points">1200 pts</span>
+            <div class="header">
+                <h1>Study Leaderboard</h1>
+                <p>Binary Search Tree implementation with algorithmic sorting</p>
             </div>
-            <div class="leaderboard-item">
-                <span class="rank">2</span>
-                <div class="user-pic"></div>
-                <span class="username">StudentB</span>
-                <span class="points">1000 pts</span>
+
+            <div class="view-toggle">
+                <button id="btn-leaderboard" class="active" onclick="switchView('leaderboard')">
+                    Sorted Leaderboard
+                </button>
+                <button id="btn-tree" onclick="switchView('tree')">
+                    Tree Structure
+                </button>
             </div>
-            <div class="leaderboard-item">
-                <span class="rank">3</span>
-                <div class="user-pic"></div>
-                <span class="username">StudentC</span>
-                <span class="points">900 pts</span>
+
+            <!-- Leaderboard View (DEFAULT) -->
+            <div id="leaderboard-view" class="view-section active">
+                <div class="leaderboard-list">
+                    {% if leaderboard %}
+                        {% for entry in leaderboard %}
+                            <div class="leaderboard-item rank-{{ entry.rank }} {% if entry.user_id == user.id %}current-user{% endif %}">
+                                <div class="rank-number">#{{ entry.rank }}</div>
+                                <div class="user-avatar">{{ entry.username[0].upper() }}</div>
+                                <div class="user-info">
+                                    <div class="username-text">
+                                        {{ entry.username }}
+                                        {% if entry.user_id == user.id %}
+                                            <span class="user-badge">YOU</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="points-display">{{ entry.points }} pts</div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No users in leaderboard yet!</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            <!-- Add more leaderboard-item divs as needed -->
+
+            <!-- Tree View -->
+            <div id="tree-view" class="view-section">
+                <div class="tree-visualization">
+                    {% if tree_structure %}
+                        <div class="tree-container">
+                            {{ render_node(tree_structure) }}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No users in the tree yet. Add some users to see the BST structure!</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if insertion_steps %}
+                <div class="info-section">
+                    <h3>Tree Construction Steps</h3>
+                    {% for step in insertion_steps %}
+                        <div class="step-item">{{ step }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
+
+    <script>
+        function switchView(view) {
+            document.querySelectorAll('.view-toggle button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            if (view === 'tree') {
+                document.getElementById('btn-tree').classList.add('active');
+            } else {
+                document.getElementById('btn-leaderboard').classList.add('active');
+            }
+
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(view + '-view').classList.add('active');
+        }
+
+        function addPoints(points) {
+            fetch('/add_points', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ points: points })
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to add points');
+            });
+        }
+
+        function refreshLeaderboard() {
+            location.reload();
+        }
+    </script>
 </body>
 </html>

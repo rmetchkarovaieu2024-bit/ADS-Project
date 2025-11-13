@@ -1,17 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, g
 from flask_sqlalchemy import SQLAlchemy
+import random
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Change this to something random!
+app.secret_key = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
-# Database model
+# ============ Database Models ============
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    points = db.Column(db.Integer, default=0)
 
 
 class Availability(db.Model):
@@ -21,7 +24,6 @@ class Availability(db.Model):
     day = db.Column(db.String(10), nullable=False)
     no_availability = db.Column(db.Boolean, default=False)
     duration = db.Column(db.Integer, default=0)
-
     user = db.relationship('User', back_populates='availabilities')
 
 
@@ -39,8 +41,7 @@ class SubjectWeight(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     subject = db.Column(db.String(200), nullable=False)
     weight = db.Column(db.Integer, nullable=False, default=3)
-    allocation = db.Column(db.Integer, nullable=False, default=0)  # NEW: Allocation column
-
+    allocation = db.Column(db.Integer, nullable=False, default=0)
     user = db.relationship('User', back_populates='subject_weights')
 
 
@@ -50,12 +51,30 @@ User.subject_weights = db.relationship(
     back_populates='user',
     cascade='all, delete-orphan'
 )
-# ----------------------------------------------------------#
-# Defaults
-# Days
+
+
+class StudySession(db.Model):
+    __tablename__ = 'study_session'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    duration_minutes = db.Column(db.Integer, nullable=False)
+    points_earned = db.Column(db.Integer, nullable=False)
+    date_logged = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+
+    user = db.relationship('User', back_populates='study_sessions')
+
+
+User.study_sessions = db.relationship(
+    'StudySession',
+    order_by=StudySession.date_logged.desc(),
+    back_populates='user',
+    cascade='all, delete-orphan'
+)
+
+# ============ Defaults ============
 default_days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
-# Subjects
 default_subjects = [
     "ALGORITHMS & DATA STRUCTURES",
     "MATHEMATICS FOR DATA MANAGEMENT AND ANALYSIS",
@@ -66,32 +85,53 @@ default_subjects = [
 ]
 
 
-# ----------------------------------------------------------#
-# Helper function to calculate allocations
+# ============ Helper Functions ============
 def calculate_allocations(user_id):
     """Calculate and update allocations for all subjects based on weights and availability"""
-    # Get total available time
     availabilities = Availability.query.filter_by(user_id=user_id).all()
     total_duration = sum(
         avail.duration for avail in availabilities
         if not avail.no_availability
     )
 
-    # Get all subject weights
     subject_weights = SubjectWeight.query.filter_by(user_id=user_id).all()
-
-    # Calculate total weight
     total_weight = sum(sw.weight for sw in subject_weights)
 
-    # Update allocation for each subject
     if total_weight > 0:
         for sw in subject_weights:
             sw.allocation = round((sw.weight / total_weight) * total_duration)
         db.session.commit()
 
 
-# ----------------------------------------------------------#
+def build_leaderboard_tree():
+    """
+    Build BST from all users and return tree data
+    Demonstrates: OOP, BST construction, Tree traversal
+    """
+    bst = LeaderboardBST()
+    users = User.query.all()
 
+    # Insert each user into BST
+    for user in users:
+        bst.insert(user.id, user.username, user.points)
+
+    # Get sorted list using traversal
+    sorted_users = bst.get_sorted_descending()
+
+    # Add ranks
+    for rank, user in enumerate(sorted_users, start=1):
+        user['rank'] = rank
+
+    return {
+        'sorted_users': sorted_users,
+        'tree_structure': bst.get_tree_for_display(),
+        'tree_height': bst.get_tree_height(),
+        'node_count': bst.count_nodes(),
+        'insertion_steps': bst.insertion_steps
+    }
+
+
+# ============ Routes ============
 @app.route('/')
 def welcome():
     return render_template('welcome.html')
@@ -113,15 +153,9 @@ def login():
 
 @app.route('/dashboard')
 def dashboard():
+    if not g.user:
+        return redirect(url_for('login'))
     return render_template('dashboard.html', user=g.user)
-
-
-@app.route('/addtestuser')
-def addtestuser():
-    u = User(username="testuser", password="testpass")
-    db.session.add(u)
-    db.session.commit()
-    return "Test user added!"
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -130,25 +164,25 @@ def register():
         username = request.form['username']
         password = request.form['password']
 
-        if User.query.filter_by(username=username).first():  # check if ist existing
+        if User.query.filter_by(username=username).first():
             flash('Username already exists. Please choose another.')
             return render_template('register.html')
 
-        new_user = User(username=username, password=password)
+        # Random initial points for demo
+        initial_points = random.randint(100, 1000)
+        new_user = User(username=username, password=password, points=initial_points)
         db.session.add(new_user)
         db.session.commit()
 
-        # Availability based on user
         for code in default_days:
             db.session.add(Availability(
                 user_id=new_user.id,
                 day=code,
                 no_availability=False,
-                duration=120  # default availability (2 h = 120 min)
+                duration=120
             ))
         db.session.commit()
 
-        # Subject based on user
         for subj in default_subjects:
             db.session.add(SubjectWeight(
                 user_id=new_user.id,
@@ -158,9 +192,7 @@ def register():
             ))
         db.session.commit()
 
-        # Calculate initial allocations
         calculate_allocations(new_user.id)
-
         flash('Registration successful! You can now log in.')
         return redirect(url_for('login'))
 
@@ -169,11 +201,46 @@ def register():
 
 @app.route('/leaderboard')
 def leaderboard():
-    return render_template('leaderboard.html', user=g.user)
+    """
+    Leaderboard using BST and Traversal Algorithm
+    Demonstrates: OOP, Tree Data Structure, Reverse In-Order Traversal
+    """
+    if not g.user:
+        return redirect(url_for('login'))
+
+    leaderboard_data = build_leaderboard_tree()
+
+    return render_template(
+        'leaderboard.html',
+        user=g.user,
+        leaderboard=leaderboard_data['sorted_users'],
+        tree_structure=leaderboard_data['tree_structure'],
+        tree_height=leaderboard_data['tree_height'],
+        node_count=leaderboard_data['node_count'],
+        insertion_steps=leaderboard_data['insertion_steps']
+    )
+
+
+@app.route('/add_points', methods=['POST'])
+def add_points():
+    """Add points to current user"""
+    if not g.user:
+        return jsonify(error="Not logged in"), 403
+
+    data = request.get_json()
+    points = data.get('points', 10)
+
+    g.user.points += points
+    db.session.commit()
+
+    return jsonify(message=f"Added {points} points!", new_total=g.user.points)
 
 
 @app.route('/weight')
 def weight():
+    if not g.user:
+        return redirect(url_for('login'))
+
     rows = SubjectWeight.query.filter_by(user_id=g.user.id).all()
     existing = {r.subject for r in rows}
 
@@ -189,10 +256,7 @@ def weight():
         db.session.commit()
         rows = SubjectWeight.query.filter_by(user_id=g.user.id).all()
 
-    # Recalculate allocations based on current availability
     calculate_allocations(g.user.id)
-
-    # Refresh to get updated allocations
     rows = SubjectWeight.query.filter_by(user_id=g.user.id).all()
     weights = {r.subject: r for r in rows}
     ordered = [weights[s] for s in default_subjects]
@@ -206,7 +270,6 @@ def save_weights():
         return jsonify(error="Not logged in"), 403
 
     data = request.get_json() or {}
-
     SubjectWeight.query.filter_by(user_id=g.user.id).delete()
 
     for subj, wt in data.items():
@@ -214,11 +277,9 @@ def save_weights():
             user_id=g.user.id,
             subject=subj,
             weight=wt,
-            allocation=0  # Will be calculated next
+            allocation=0
         ))
     db.session.commit()
-
-    # Recalculate allocations after saving weights
     calculate_allocations(g.user.id)
 
     return jsonify(message="Weights saved!")
@@ -233,10 +294,13 @@ def load_current_user():
 
 @app.route('/schedule')
 def schedule():
+    if not g.user:
+        return redirect(url_for('login'))
+
     rows = Availability.query.filter_by(user_id=g.user.id).all()
     existing = {r.day for r in rows}
 
-    for code in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']:
+    for code in default_days:
         if code not in existing:
             db.session.add(Availability(
                 user_id=g.user.id,
@@ -249,15 +313,9 @@ def schedule():
         rows = Availability.query.filter_by(user_id=g.user.id).all()
 
     availabilities = {r.day: r for r in rows}
-
-    return render_template(  # see availability per person
-        'schedule.html',
-        user=g.user,
-        availabilities=availabilities
-    )
+    return render_template('schedule.html', user=g.user, availabilities=availabilities)
 
 
-# Route to save availability
 @app.route('/save_availability', methods=['POST'])
 def save_availability():
     data = request.get_json() or {}
@@ -265,10 +323,8 @@ def save_availability():
     if not user_id:
         return jsonify(error="Not logged in"), 403
 
-    # Clear existing for this user
     Availability.query.filter_by(user_id=user_id).delete()
 
-    # Insert new data
     for day, info in data.items():
         avail = Availability(
             user_id=user_id,
@@ -280,17 +336,289 @@ def save_availability():
 
     try:
         db.session.commit()
-
-        # Recalculate allocations after availability changes
         calculate_allocations(user_id)
-
         return jsonify(message="Availability saved!")
     except Exception as e:
         db.session.rollback()
         return jsonify(error="Save failed"), 500
 
 
+@app.route('/study_log')
+def study_log():
+    """Study log page where users can log their study sessions"""
+    if not g.user:
+        return redirect(url_for('login'))
+
+    # Get user's subjects
+    subjects = SubjectWeight.query.filter_by(user_id=g.user.id).all()
+    subject_list = [sw.subject for sw in subjects]
+
+    # If no subjects, use defaults
+    if not subject_list:
+        subject_list = default_subjects
+
+    # Get recent study sessions
+    recent_sessions = StudySession.query.filter_by(user_id=g.user.id).order_by(
+        StudySession.date_logged.desc()
+    ).limit(10).all()
+
+    # Calculate total study time and points
+    all_sessions = StudySession.query.filter_by(user_id=g.user.id).all()
+    total_minutes = sum(s.duration_minutes for s in all_sessions)
+    total_hours = total_minutes / 60
+
+    return render_template(
+        'study_log.html',
+        user=g.user,
+        subjects=subject_list,
+        recent_sessions=recent_sessions,
+        total_hours=round(total_hours, 1),
+        total_sessions=len(all_sessions)
+    )
+
+
+@app.route('/log_study_session', methods=['POST'])
+def log_study_session():
+    """Log a new study session and award points"""
+    if not g.user:
+        return jsonify(error="Not logged in"), 403
+
+    data = request.get_json()
+    subject = data.get('subject')
+    duration = data.get('duration')  # in minutes
+
+    if not subject or not duration:
+        return jsonify(error="Subject and duration required"), 400
+
+    try:
+        duration = int(duration)
+        if duration <= 0:
+            return jsonify(error="Duration must be positive"), 400
+    except ValueError:
+        return jsonify(error="Invalid duration"), 400
+
+    # Calculate points: 1 point per minute of study
+    points_earned = duration
+
+    # Create study session record
+    session_record = StudySession(
+        user_id=g.user.id,
+        subject=subject,
+        duration_minutes=duration,
+        points_earned=points_earned
+    )
+    db.session.add(session_record)
+
+    # Add points to user's total
+    g.user.points += points_earned
+
+    try:
+        db.session.commit()
+        return jsonify(
+            message=f"Study session logged! You earned {points_earned} points!",
+            points_earned=points_earned,
+            new_total_points=g.user.points
+        )
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(error="Failed to log session"), 500
+
+
+@app.route('/delete_study_session/<int:session_id>', methods=['POST'])
+def delete_study_session(session_id):
+    """Delete a study session and remove points"""
+    if not g.user:
+        return jsonify(error="Not logged in"), 403
+
+    session_record = StudySession.query.get(session_id)
+
+    if not session_record:
+        return jsonify(error="Session not found"), 404
+
+    if session_record.user_id != g.user.id:
+        return jsonify(error="Unauthorized"), 403
+
+    # Remove points from user
+    g.user.points -= session_record.points_earned
+    if g.user.points < 0:
+        g.user.points = 0
+
+    db.session.delete(session_record)
+
+    try:
+        db.session.commit()
+        return jsonify(message="Session deleted", new_total_points=g.user.points)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(error="Failed to delete session"), 500
+
+
+
+# ============ OOP: Tree Node Class ============
+class TreeNode:
+    """
+    Node in Binary Search Tree for leaderboard
+    Demonstrates: OOP principles, encapsulation, object attributes
+    """
+
+    def __init__(self, user_id, username, points):
+        self.user_id = user_id
+        self.username = username
+        self.points = points
+        self.left = None  # Left child (lower points)
+        self.right = None  # Right child (higher points)
+
+    def __repr__(self):
+        return f"TreeNode({self.username}, {self.points}pts)"
+
+
+# ============ OOP: Binary Search Tree Class ============
+class LeaderboardBST:
+    """
+    Binary Search Tree for managing study leaderboard
+    Demonstrates: Tree data structure, recursive algorithms, OOP design
+    """
+
+    def __init__(self):
+        self.root = None
+        self.insertion_steps = []
+
+    def insert(self, user_id, username, points):
+        """
+        Insert a user into the BST based on points
+        Time Complexity: O(log n) average, O(n) worst case
+        """
+        if self.root is None:
+            self.root = TreeNode(user_id, username, points)
+            self.insertion_steps.append(f"Created root node: {username} ({points} pts)")
+        else:
+            self._insert_recursive(self.root, user_id, username, points)
+
+    def _insert_recursive(self, node, user_id, username, points):
+        """
+        Helper method for recursive insertion
+        Demonstrates: Recursion, BST insertion algorithm
+        """
+        if points < node.points:
+            # Go left (lower points)
+            if node.left is None:
+                node.left = TreeNode(user_id, username, points)
+                self.insertion_steps.append(
+                    f"Inserted {username} ({points} pts) as LEFT child of {node.username} ({node.points} pts)"
+                )
+            else:
+                self._insert_recursive(node.left, user_id, username, points)
+        else:
+            # Go right (higher or equal points)
+            if node.right is None:
+                node.right = TreeNode(user_id, username, points)
+                self.insertion_steps.append(
+                    f"Inserted {username} ({points} pts) as RIGHT child of {node.username} ({node.points} pts)"
+                )
+            else:
+                self._insert_recursive(node.right, user_id, username, points)
+
+    def get_sorted_descending(self):
+        """
+        Traverse tree and return sorted list in DESCENDING order
+        Uses REVERSE in-order traversal (Right -> Root -> Left)
+        Time Complexity: O(n) - visits each node once
+        """
+        result = []
+        self._reverse_inorder_traversal(self.root, result)
+        return result
+
+    def _reverse_inorder_traversal(self, node, result):
+        """
+        Recursive reverse in-order traversal
+        Visit order: Right subtree -> Root -> Left subtree
+        This gives us descending order (highest to lowest)
+        Demonstrates: Tree traversal algorithm, recursion
+        """
+        if node is not None:
+            # First traverse right subtree (higher values)
+            self._reverse_inorder_traversal(node.right, result)
+
+            # Then visit current node
+            result.append({
+                'user_id': node.user_id,
+                'username': node.username,
+                'points': node.points
+            })
+
+            # Finally traverse left subtree (lower values)
+            self._reverse_inorder_traversal(node.left, result)
+
+    def get_tree_height(self):
+        """Calculate height of tree"""
+        return self._calculate_height(self.root)
+
+    def _calculate_height(self, node):
+        """Recursive height calculation"""
+        if node is None:
+            return 0
+        left_height = self._calculate_height(node.left)
+        right_height = self._calculate_height(node.right)
+        return 1 + max(left_height, right_height)
+
+    def count_nodes(self):
+        """Count total nodes in tree"""
+        return self._count_nodes_recursive(self.root)
+
+    def _count_nodes_recursive(self, node):
+        """Recursive node counting"""
+        if node is None:
+            return 0
+        return 1 + self._count_nodes_recursive(node.left) + self._count_nodes_recursive(node.right)
+
+    def get_tree_for_display(self):
+        """Convert tree to nested dict for template rendering"""
+        if self.root is None:
+            return None
+        return self._node_to_dict(self.root)
+
+    def _node_to_dict(self, node):
+        """Convert a node and its children to dictionary"""
+        if node is None:
+            return None
+        return {
+            'user_id': node.user_id,
+            'username': node.username,
+            'points': node.points,
+            'left': self._node_to_dict(node.left),
+            'right': self._node_to_dict(node.right)
+        }
+
+# ============ __main__ ============
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+
+        # Add points column to existing users if it doesn't exist
+        try:
+            from sqlalchemy import inspect
+
+            inspector = inspect(db.engine)
+            columns = [col['name'] for col in inspector.get_columns('user')]
+
+            if 'points' not in columns:
+                # Add points column to existing table
+                with db.engine.connect() as conn:
+                    conn.execute(db.text('ALTER TABLE user ADD COLUMN points INTEGER DEFAULT 0'))
+                    conn.commit()
+                print("Added 'points' column to User table")
+
+                # Set random points for existing users
+                users = User.query.all()
+                for user in users:
+                    user.points = random.randint(100, 1000)
+                db.session.commit()
+                print(f"Updated {len(users)} users with random points")
+        except Exception as e:
+            print(f"Migration note: {e}")
+
+        # Verify all tables exist
+        print("Database tables created:")
+        print(db.metadata.tables.keys())
+
     app.run(debug=True)

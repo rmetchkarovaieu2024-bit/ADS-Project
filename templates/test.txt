@@ -1,193 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subjects - Smart Study Planner</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-        }
-        .navbar {
-            background: #000;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            font-size: 24px;
-            color: white;
-        }
-        .nav-links {
-            display: flex;
-            gap: 30px;
-        }
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .subjects-container {
-            padding: 40px;
-            display: flex;
-        }
-        .sidebar {
-            width: 250px;
-            background: #d9d9d9;
-            padding: 30px;
-            border-radius: 0 30px 30px 0;
-            min-height: 600px;
-        }
-        .menu-item {
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-            transition: background 0.3s;
-            text-decoration: none;
-            color: #333;
-        }
-        .menu-item:hover {
-            background: #c9c9c9;
-        }
-        .menu-item.active {
-            background: #666;
-            color: white;
-        }
-        .menu-icon {
-            width: 24px;
-            height: 24px;
-            background: #888;
-            border-radius: 4px;
-        }
-        .menu-item-no {
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-            transition: background 0.3s;
-            text-decoration: none;
-            color: #a3a3a3;
-        }
-        .subjects-content {
-            flex: 1;
-            padding: 40px;
-        }
-        .subjects-content h1 {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 40px;
-        }
-        .subject-item {
-            background: #d9d9d9;
-            padding: 20px 30px;
-            border-radius: 50px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 18px;
-        }
-        .subject-name {
-            font-weight: 600;
-            flex: 1;
-        }
-        .weightage-selector {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .weightage-selector label {
-            font-size: 16px;
-        }
-        .weightage-selector select {
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            background: white;
-        }
-        .save-button {
-            background: #000;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        .save-button:hover {
-            background: #333;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="logo">✱ {{ user.username }}</div>
-        <div class="nav-links">
-            <a href="/leaderboard">Leaderboard</a>
-            <a href="/schedule">Schedule</a>
-            <a href="/dashboard">Dashboard</a>
-        </div>
-    </div>
-    <div class="subjects-container">
-        <div class="sidebar">
-            <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
-            <div class="menu-item active"><div class="menu-icon"></div><span>Subjects</span></div>
-            <a href="/schedule" class="menu-item"><div class="menu-icon"></div><span>Schedule</span></a>
-            <div class="menu-item-no"><div class="menu-icon"></div><span>Study Groups</span></div>
-            <a href="/leaderboard" class="menu-item"><div class="menu-icon"></div><span>Leaderboard</span></a>
-            <div class="menu-item-no"><div class="menu-icon"></div><span>Milestones</span></div>
-            <div class="menu-item-no"><div class="menu-icon"></div><span>Notifications</span></div>
-        </div>
-        <div class="subjects-content">
-            <h1>Subjects & Weightage</h1>
-            {% for sw in subject_weights %}
-                <div class="subject-item">
-                  <span class="subject-name">{{ sw.subject }}</span>
-                    <div class="weightage-selector">
-                        <label for="weight-{{ loop.index }}">Weightage:</label>
-                        <select id="weight-{{ loop.index }}">
-                          {% for i in range(1,6) %}
-                            <option value="{{ i }}"
-                              {% if sw.weight == i %}selected{% endif %}>
-                              {{ i }}
-                            </option>
-                          {% endfor %}
-                        </select>
+<h2>Binary Search Tree Structure</h2>
+                <p><strong>Algorithm:</strong> BST with recursive insertion based on points (lower left, higher right)</p>
+
+                <div class="tree-stats">
+                    <div class="stat-card">
+                        <div class="value">{{ node_count }}</div>
+                        <div class="label">Total Nodes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">{{ tree_height }}</div>
+                        <div class="label">Tree Height</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">O(log n)</div>
+                        <div class="label">Insert Complexity</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">O(n)</div>
+                        <div class="label">Traversal Complexity</div>
                     </div>
                 </div>
-            {% endfor %}
-            <button class="save-button" id="save-btn">Save Weightages</button>
-        </div>
-    </div>
-    <script> # javasctipt code
-        document.getElementById('save-btn').addEventListener('click', () => {
-          const data = {};
-            document.querySelectorAll('.subject-item').forEach((el, idx) => {
-            const subj = el.querySelector('.subject-name').textContent;
-            const sel  = el.querySelector('select');
-            data[subj] = parseInt(sel.value, 10);
-          });
+            </div>
 
-          fetch('/save_weights', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-          })
-          .then(r => r.json())
-          .then(res => alert(res.message || res.error))
-          .catch(_ => alert('Save failed'));
-        });
-    </script>
-</body>
-</html>
+
+            <!-- Controls -->
+            <div class="controls">
+                <h3>Test Controls</h3>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="addPoints(10)">Add 10 Points</button>
+                    <button class="btn btn-primary" onclick="addPoints(50)">Add 50 Points</button>
+                    <button class="btn btn-primary" onclick="addPoints(100)">Add 100 Points</button>
+                    <button class="btn btn-secondary" onclick="refreshLeaderboard()">Refresh Leaderboard</button>
+                </div>
+                <p style="margin-top: 10px; font-size: 13px; color: #666;">
+                    Your current points: <strong>{{ user.points }}</strong>
+                </p>
+            </div>

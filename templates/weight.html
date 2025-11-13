@@ -136,6 +136,7 @@
         <div class="nav-links">
             <a href="/leaderboard">Leaderboard</a>
             <a href="/schedule">Schedule</a>
+            <a href="/study_log">Study Log</a>
             <a href="/dashboard">Dashboard</a>
         </div>
     </div>
@@ -144,18 +145,19 @@
             <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
             <div class="menu-item active"><div class="menu-icon"></div><span>Subjects</span></div>
             <a href="/schedule" class="menu-item"><div class="menu-icon"></div><span>Schedule</span></a>
+            <a href="/study_log" class="menu-item"><div class="menu-icon"></div><span>Study log</span></a>
             <div class="menu-item-no"><div class="menu-icon"></div><span>Study Groups</span></div>
             <a href="/leaderboard" class="menu-item"><div class="menu-icon"></div><span>Leaderboard</span></a>
             <div class="menu-item-no"><div class="menu-icon"></div><span>Milestones</span></div>
             <div class="menu-item-no"><div class="menu-icon"></div><span>Notifications</span></div>
         </div>
         <div class="subjects-content">
-            <h1>Subjects & Weightage</h1>
+            <h1>Subjects</h1>
             {% for sw in subject_weights %}
                 <div class="subject-item">
                   <span class="subject-name">{{ sw.subject }}</span>
                     <div class="weightage-selector">
-                        <label for="weight-{{ loop.index }}">Weightage:</label>
+                        <label for="weight-{{ loop.index }}">Weight:</label>
                         <select id="weight-{{ loop.index }}">
                           {% for i in range(1,7) %}
                             <option value="{{ i }}"
@@ -167,7 +169,7 @@
                     </div>
                 </div>
             {% endfor %}
-            <button class="save-button" id="save-btn">Save Weightages</button>
+            <button class="save-button" id="save-btn">Save Weight</button>
         </div>
     </div>
     <script>
