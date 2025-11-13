@@ -157,7 +157,7 @@
                     <div class="weightage-selector">
                         <label for="weight-{{ loop.index }}">Weightage:</label>
                         <select id="weight-{{ loop.index }}">
-                          {% for i in range(1,6) %}
+                          {% for i in range(1,7) %}
                             <option value="{{ i }}"
                               {% if sw.weight == i %}selected{% endif %}>
                               {{ i }}
@@ -170,23 +170,87 @@
             <button class="save-button" id="save-btn">Save Weightages</button>
         </div>
     </div>
-    <script> # javasctipt code
-        document.getElementById('save-btn').addEventListener('click', () => {
-          const data = {};
-            document.querySelectorAll('.subject-item').forEach((el, idx) => {
-            const subj = el.querySelector('.subject-name').textContent;
-            const sel  = el.querySelector('select');
-            data[subj] = parseInt(sel.value, 10);
-          });
+    <script>
+        // Replace the script section in your weight.html with this:
 
-          fetch('/save_weights', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-          })
-          .then(r => r.json())
-          .then(res => alert(res.message || res.error))
-          .catch(_ => alert('Save failed'));
+        document.getElementById('save-btn').addEventListener('click', () => {
+            const data = {};
+            const weightCounts = {};
+            let isValid = true;
+            let errorMessage = '';
+
+            // Collect all weights and count occurrences
+            document.querySelectorAll('.subject-item').forEach((el, idx) => {
+                const subj = el.querySelector('.subject-name').textContent.trim();
+                const sel = el.querySelector('select');
+                const weight = parseInt(sel.value, 10);
+
+                data[subj] = weight;
+
+                // Count how many times each weight is used
+                if (weightCounts[weight]) {
+                    weightCounts[weight]++;
+                } else {
+                    weightCounts[weight] = 1;
+                }
+            });
+
+            // Check if any weight is used more than once
+            const duplicateWeights = [];
+            for (let weight in weightCounts) {
+                if (weightCounts[weight] > 1) {
+                    duplicateWeights.push(weight);
+                }
+            }
+
+            if (duplicateWeights.length > 0) {
+                errorMessage = 'Error: Weight(s) ' + duplicateWeights.join(', ') + ' assigned multiple times.\n\n';
+                errorMessage += 'Each weight (1-6) must be assigned to exactly one subject.\n';
+                errorMessage += 'Please assign unique weights and try again.';
+                alert(errorMessage);
+                return; // Stop execution, don't save
+            }
+
+            // Check if all weights 1-6 are used exactly once
+            const usedWeights = Object.keys(weightCounts).map(w => parseInt(w)).sort();
+            const expectedWeights = [1, 2, 3, 4, 5, 6];
+
+            const missingWeights = expectedWeights.filter(w => !usedWeights.includes(w));
+
+            if (missingWeights.length > 0) {
+                errorMessage = 'Error: Weight(s) ' + missingWeights.join(', ') + ' not assigned.\n\n';
+                errorMessage += 'Each weight from 1 to 6 must be assigned to exactly one subject.\n';
+                errorMessage += 'Please assign all weights and try again.';
+                alert(errorMessage);
+                return; // Stop execution, don't save
+            }
+
+            console.log('Sending data:', data); // Debug: Check what's being sent
+
+            // If validation passes, proceed with save
+            fetch('/save_weights', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(r => {
+                console.log('Response status:', r.status); // Debug
+                if (!r.ok) {
+                    throw new Error('HTTP error ' + r.status);
+                }
+                return r.json();
+            })
+            .then(res => {
+                console.log('Response:', res); // Debug
+                alert(res.message || res.error);
+                if (res.message) {
+                    location.reload(); // Reload page to show updated allocations
+                }
+            })
+            .catch(err => {
+                console.error('Save error:', err);
+                alert('Save failed: ' + err.message);
+            });
         });
     </script>
 </body>

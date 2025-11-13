@@ -4,10 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="466c50a2-2dd7-4d07-8c6b-768b84d5f6e4" name="Changes" comment="30.10.2025 - connection of database with schedule screen">
+    <list default="true" id="466c50a2-2dd7-4d07-8c6b-768b84d5f6e4" name="Changes" comment="31.10.2025 - weight subject connected to the database">
+      <change afterPath="$PROJECT_DIR$/algorithm.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/instance/users.db" beforeDir="false" afterPath="$PROJECT_DIR$/instance/users.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/test.txt" beforeDir="false" afterPath="$PROJECT_DIR$/templates/test.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/weight.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/weight.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -19,6 +21,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -61,6 +64,9 @@
   &quot;associatedIndex&quot;: 4
 }</component>
   <component name="ProjectId" id="34gacuk8XzKvBwiUDDchV2wPDNi" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -86,7 +92,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -114,7 +120,10 @@
       <workItem from="1761638809420" duration="2599000" />
       <workItem from="1761642932201" duration="16635000" />
       <workItem from="1761761928542" duration="21352000" />
-      <workItem from="1761893695592" duration="4279000" />
+      <workItem from="1761893695592" duration="9261000" />
+      <workItem from="1762167806358" duration="8690000" />
+      <workItem from="1762331779227" duration="11803000" />
+      <workItem from="1762940885560" duration="11489000" />
     </task>
     <task id="LOCAL-00001" summary=".">
       <option name="closed" value="true" />
@@ -180,7 +189,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761830195344</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="31.10.2025 - weight subject connected to the database">
+      <option name="closed" value="true" />
+      <created>1761898322328</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1761898322328</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -205,7 +222,8 @@
     <MESSAGE value="29.10.2025 - Added Subject Weights and Schedule" />
     <MESSAGE value="29.10.2025 - quick fix" />
     <MESSAGE value="30.10.2025 - connection of database with schedule screen" />
-    <option name="LAST_COMMIT_MESSAGE" value="30.10.2025 - connection of database with schedule screen" />
+    <MESSAGE value="31.10.2025 - weight subject connected to the database" />
+    <option name="LAST_COMMIT_MESSAGE" value="31.10.2025 - weight subject connected to the database" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -219,7 +237,7 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ADS_Project$app.coverage" NAME="app Coverage Results" MODIFIED="1761897882245" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ADS_Project$app.coverage" NAME="app Coverage Results" MODIFIED="1762948584009" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ADS_Project$main.coverage" NAME="main Coverage Results" MODIFIED="1761823359294" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

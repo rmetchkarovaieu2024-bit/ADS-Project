@@ -6,11 +6,13 @@ app.secret_key = 'your_secret_key'  # Change this to something random!
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 db = SQLAlchemy(app)
 
+
 # Database model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+
 
 class Availability(db.Model):
     __tablename__ = 'availability'
@@ -22,6 +24,7 @@ class Availability(db.Model):
 
     user = db.relationship('User', back_populates='availabilities')
 
+
 User.availabilities = db.relationship(
     'Availability',
     order_by=Availability.id,
@@ -29,14 +32,17 @@ User.availabilities = db.relationship(
     cascade='all, delete-orphan'
 )
 
+
 class SubjectWeight(db.Model):
     __tablename__ = 'subject_weight'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     subject = db.Column(db.String(200), nullable=False)
     weight = db.Column(db.Integer, nullable=False, default=3)
+    allocation = db.Column(db.Integer, nullable=False, default=0)  # NEW: Allocation column
 
     user = db.relationship('User', back_populates='subject_weights')
+
 
 User.subject_weights = db.relationship(
     'SubjectWeight',
@@ -61,10 +67,35 @@ default_subjects = [
 
 
 # ----------------------------------------------------------#
+# Helper function to calculate allocations
+def calculate_allocations(user_id):
+    """Calculate and update allocations for all subjects based on weights and availability"""
+    # Get total available time
+    availabilities = Availability.query.filter_by(user_id=user_id).all()
+    total_duration = sum(
+        avail.duration for avail in availabilities
+        if not avail.no_availability
+    )
+
+    # Get all subject weights
+    subject_weights = SubjectWeight.query.filter_by(user_id=user_id).all()
+
+    # Calculate total weight
+    total_weight = sum(sw.weight for sw in subject_weights)
+
+    # Update allocation for each subject
+    if total_weight > 0:
+        for sw in subject_weights:
+            sw.allocation = round((sw.weight / total_weight) * total_duration)
+        db.session.commit()
+
+
+# ----------------------------------------------------------#
 
 @app.route('/')
 def welcome():
     return render_template('welcome.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -84,6 +115,7 @@ def login():
 def dashboard():
     return render_template('dashboard.html', user=g.user)
 
+
 @app.route('/addtestuser')
 def addtestuser():
     u = User(username="testuser", password="testpass")
@@ -91,13 +123,14 @@ def addtestuser():
     db.session.commit()
     return "Test user added!"
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        if User.query.filter_by(username=username).first(): # check if ist existing
+        if User.query.filter_by(username=username).first():  # check if ist existing
             flash('Username already exists. Please choose another.')
             return render_template('register.html')
 
@@ -105,24 +138,28 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-    # Availability based on user
+        # Availability based on user
         for code in default_days:
             db.session.add(Availability(
                 user_id=new_user.id,
                 day=code,
                 no_availability=False,
-                duration=120 # default availability (2 h = 120 min)
+                duration=120  # default availability (2 h = 120 min)
             ))
         db.session.commit()
 
-    # Subject based on user
+        # Subject based on user
         for subj in default_subjects:
             db.session.add(SubjectWeight(
                 user_id=new_user.id,
                 subject=subj,
-                weight=3
+                weight=3,
+                allocation=0
             ))
         db.session.commit()
+
+        # Calculate initial allocations
+        calculate_allocations(new_user.id)
 
         flash('Registration successful! You can now log in.')
         return redirect(url_for('login'))
@@ -134,6 +171,7 @@ def register():
 def leaderboard():
     return render_template('leaderboard.html', user=g.user)
 
+
 @app.route('/weight')
 def weight():
     rows = SubjectWeight.query.filter_by(user_id=g.user.id).all()
@@ -144,16 +182,23 @@ def weight():
             db.session.add(SubjectWeight(
                 user_id=g.user.id,
                 subject=subj,
-                weight=3
+                weight=3,
+                allocation=0
             ))
     if len(existing) < len(default_subjects):
         db.session.commit()
         rows = SubjectWeight.query.filter_by(user_id=g.user.id).all()
 
+    # Recalculate allocations based on current availability
+    calculate_allocations(g.user.id)
+
+    # Refresh to get updated allocations
+    rows = SubjectWeight.query.filter_by(user_id=g.user.id).all()
     weights = {r.subject: r for r in rows}
     ordered = [weights[s] for s in default_subjects]
 
     return render_template('weight.html', user=g.user, subject_weights=ordered)
+
 
 @app.route('/save_weights', methods=['POST'])
 def save_weights():
@@ -168,10 +213,16 @@ def save_weights():
         db.session.add(SubjectWeight(
             user_id=g.user.id,
             subject=subj,
-            weight=wt
+            weight=wt,
+            allocation=0  # Will be calculated next
         ))
     db.session.commit()
+
+    # Recalculate allocations after saving weights
+    calculate_allocations(g.user.id)
+
     return jsonify(message="Weights saved!")
+
 
 @app.before_request
 def load_current_user():
@@ -179,12 +230,13 @@ def load_current_user():
     if 'user_id' in session:
         g.user = User.query.get(session['user_id'])
 
+
 @app.route('/schedule')
 def schedule():
     rows = Availability.query.filter_by(user_id=g.user.id).all()
     existing = {r.day for r in rows}
 
-    for code in ['mon','tue','wed','thu','fri','sat','sun']:
+    for code in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']:
         if code not in existing:
             db.session.add(Availability(
                 user_id=g.user.id,
@@ -198,30 +250,26 @@ def schedule():
 
     availabilities = {r.day: r for r in rows}
 
-    return render_template( # see availability per person
+    return render_template(  # see availability per person
         'schedule.html',
         user=g.user,
         availabilities=availabilities
     )
 
+
 # Route to save availability
 @app.route('/save_availability', methods=['POST'])
 def save_availability():
-    # print("Save route called")  # Debug: Check if route is hit
     data = request.get_json() or {}
-   #  print(f"Received data: {data}")  # Debug: See what data was sent
     user_id = session.get('user_id')
     if not user_id:
-        print("No user_id in session")  # Debug: Login issue
         return jsonify(error="Not logged in"), 403
 
     # Clear existing for this user
     Availability.query.filter_by(user_id=user_id).delete()
-    # print(f"Cleared existing for user {user_id}")  # Debug
 
     # Insert new data
     for day, info in data.items():
-        #print(f"Saving {day}: {info}")  # Debug: Per-day data
         avail = Availability(
             user_id=user_id,
             day=day,
@@ -232,12 +280,15 @@ def save_availability():
 
     try:
         db.session.commit()
-        #print("Commit successful")  # Debug
+
+        # Recalculate allocations after availability changes
+        calculate_allocations(user_id)
+
         return jsonify(message="Availability saved!")
     except Exception as e:
-        #print(f"Commit failed: {e}")  # Debug: DB error
         db.session.rollback()
         return jsonify(error="Save failed"), 500
+
 
 if __name__ == '__main__':
     with app.app_context():

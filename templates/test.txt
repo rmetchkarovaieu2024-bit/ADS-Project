@@ -1,89 +1,193 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_sqlalchemy import SQLAlchemy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subjects - Smart Study Planner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .navbar {
+            background: #000;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            color: white;
+        }
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .subjects-container {
+            padding: 40px;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background: #d9d9d9;
+            padding: 30px;
+            border-radius: 0 30px 30px 0;
+            min-height: 600px;
+        }
+        .menu-item {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+        .menu-item:hover {
+            background: #c9c9c9;
+        }
+        .menu-item.active {
+            background: #666;
+            color: white;
+        }
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            background: #888;
+            border-radius: 4px;
+        }
+        .menu-item-no {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            color: #a3a3a3;
+        }
+        .subjects-content {
+            flex: 1;
+            padding: 40px;
+        }
+        .subjects-content h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        .subject-item {
+            background: #d9d9d9;
+            padding: 20px 30px;
+            border-radius: 50px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 18px;
+        }
+        .subject-name {
+            font-weight: 600;
+            flex: 1;
+        }
+        .weightage-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .weightage-selector label {
+            font-size: 16px;
+        }
+        .weightage-selector select {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: white;
+        }
+        .save-button {
+            background: #000;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .save-button:hover {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">✱ {{ user.username }}</div>
+        <div class="nav-links">
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/schedule">Schedule</a>
+            <a href="/dashboard">Dashboard</a>
+        </div>
+    </div>
+    <div class="subjects-container">
+        <div class="sidebar">
+            <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
+            <div class="menu-item active"><div class="menu-icon"></div><span>Subjects</span></div>
+            <a href="/schedule" class="menu-item"><div class="menu-icon"></div><span>Schedule</span></a>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Study Groups</span></div>
+            <a href="/leaderboard" class="menu-item"><div class="menu-icon"></div><span>Leaderboard</span></a>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Milestones</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Notifications</span></div>
+        </div>
+        <div class="subjects-content">
+            <h1>Subjects & Weightage</h1>
+            {% for sw in subject_weights %}
+                <div class="subject-item">
+                  <span class="subject-name">{{ sw.subject }}</span>
+                    <div class="weightage-selector">
+                        <label for="weight-{{ loop.index }}">Weightage:</label>
+                        <select id="weight-{{ loop.index }}">
+                          {% for i in range(1,6) %}
+                            <option value="{{ i }}"
+                              {% if sw.weight == i %}selected{% endif %}>
+                              {{ i }}
+                            </option>
+                          {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            {% endfor %}
+            <button class="save-button" id="save-btn">Save Weightages</button>
+        </div>
+    </div>
+    <script> # javasctipt code
+        document.getElementById('save-btn').addEventListener('click', () => {
+          const data = {};
+            document.querySelectorAll('.subject-item').forEach((el, idx) => {
+            const subj = el.querySelector('.subject-name').textContent;
+            const sel  = el.querySelector('select');
+            data[subj] = parseInt(sel.value, 10);
+          });
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Change this to something random!
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-db = SQLAlchemy(app)
-
-# Database model
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
-
-# Only ONE home route! Let's use the welcome page as home
-@app.route('/')
-def welcome():
-    return render_template('welcome.html')
-
-#if __name__ == "__app__":
-#    app.run(debug=True)
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username, password=password).first()
-        if user:
-            session['user_id'] = user.id
-            return redirect(url_for('dashboard'))
-        else:
-            return render_template('login.html', error='Invalid username or password')
-    return render_template('login.html')
-
-@app.route('/dashboard')
-def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    return render_template('dashboard.html')
-
-@app.route('/addtestuser')
-def addtestuser():
-    u = User(username="testuser", password="testpass")
-    db.session.add(u)
-    db.session.commit()
-    return "Test user added!"
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        # Check if username already exists
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists. Please choose another.')
-            return render_template('register.html')
-
-        # Add user to database
-        new_user = User(username=username, password=password)
-        db.session.add(new_user)
-        db.session.commit()
-        flash('Registration successful! You can now log in.')
-        return redirect(url_for('login'))  # Make sure you have a 'login' route
-
-    return render_template('register.html')
-
-@app.route('/leaderboard')
-def leaderboard():
-    return render_template('leaderboard.html')
-
-@app.route('/weight')
-def weight():
-    return render_template('weight.html')
-
-@app.route('/schedule')
-def schedule():
-    return render_template('schedule.html')
-
-
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
-
-
--------------------------------------------------
+          fetch('/save_weights', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+          })
+          .then(r => r.json())
+          .then(res => alert(res.message || res.error))
+          .catch(_ => alert('Save failed'));
+        });
+    </script>
+</body>
+</html>
