@@ -4,15 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="466c50a2-2dd7-4d07-8c6b-768b84d5f6e4" name="Changes" comment="13.11.2025 - Raya and Alp changes">
-      <change afterPath="$PROJECT_DIR$/templates/study_log.html" afterDir="false" />
+    <list default="true" id="466c50a2-2dd7-4d07-8c6b-768b84d5f6e4" name="Changes" comment="13.11.2025 - Raya fixes random things">
+      <change afterPath="$PROJECT_DIR$/templates/study_groups.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/instance/users.db" beforeDir="false" afterPath="$PROJECT_DIR$/instance/users.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/leaderboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/leaderboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/schedule.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/schedule.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/test.txt" beforeDir="false" afterPath="$PROJECT_DIR$/templates/test.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/weight.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/weight.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -126,7 +122,7 @@
       <workItem from="1761893695592" duration="9261000" />
       <workItem from="1762167806358" duration="8690000" />
       <workItem from="1762331779227" duration="11803000" />
-      <workItem from="1762940885560" duration="19841000" />
+      <workItem from="1762940885560" duration="24030000" />
     </task>
     <task id="LOCAL-00001" summary=".">
       <option name="closed" value="true" />
@@ -208,7 +204,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763024418234</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="13.11.2025 - Raya fixes random things">
+      <option name="closed" value="true" />
+      <created>1763033624039</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1763033624039</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -235,7 +239,8 @@
     <MESSAGE value="30.10.2025 - connection of database with schedule screen" />
     <MESSAGE value="31.10.2025 - weight subject connected to the database" />
     <MESSAGE value="13.11.2025 - Raya and Alp changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="13.11.2025 - Raya and Alp changes" />
+    <MESSAGE value="13.11.2025 - Raya fixes random things" />
+    <option name="LAST_COMMIT_MESSAGE" value="13.11.2025 - Raya fixes random things" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -249,7 +254,7 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ADS_Project$app.coverage" NAME="app Coverage Results" MODIFIED="1763033480517" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ADS_Project$app.coverage" NAME="app Coverage Results" MODIFIED="1763040824014" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ADS_Project$main.coverage" NAME="main Coverage Results" MODIFIED="1761823359294" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

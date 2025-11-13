@@ -589,6 +589,279 @@ class LeaderboardBST:
             'right': self._node_to_dict(node.right)
         }
 
+
+# ============ OOP: Graph Class for Study Buddies ============
+from collections import deque
+
+
+class StudyBuddyGraph:
+    """
+    Graph data structure for finding study buddies
+    Demonstrates: Graph theory, BFS/DFS algorithms, adjacency list representation
+    """
+
+    def __init__(self):
+        self.graph = {}  # Adjacency list: {user_id: [connected_user_ids]}
+        self.user_data = {}  # Store user information
+        self.connections = 0
+        self.traversal_path = []
+
+    def add_user(self, user_id, username, points, subjects):
+        """Add a user node to the graph"""
+        if user_id not in self.graph:
+            self.graph[user_id] = []
+            self.user_data[user_id] = {
+                'username': username,
+                'points': points,
+                'subjects': set(subjects)
+            }
+
+    def add_connection(self, user1_id, user2_id):
+        """
+        Add bidirectional edge between two users
+        Represents potential study buddy relationship
+        """
+        if user1_id in self.graph and user2_id in self.graph:
+            if user2_id not in self.graph[user1_id]:
+                self.graph[user1_id].append(user2_id)
+                self.graph[user2_id].append(user1_id)
+                self.connections += 1
+
+    def calculate_compatibility(self, user1_id, user2_id):
+        """
+        Calculate compatibility score between two users
+        Based on: shared subjects and point similarity
+        """
+        user1 = self.user_data[user1_id]
+        user2 = self.user_data[user2_id]
+
+        # Shared subjects score (0-50 points)
+        shared = user1['subjects'].intersection(user2['subjects'])
+        total_subjects = max(len(user1['subjects']), len(user2['subjects']))
+        subject_score = (len(shared) / total_subjects * 50) if total_subjects > 0 else 0
+
+        # Points similarity score (0-50 points)
+        point_diff = abs(user1['points'] - user2['points'])
+        max_possible_diff = 1000  # Assume max difference of 1000 points
+        point_score = max(0, 50 - (point_diff / max_possible_diff * 50))
+
+        total_score = int(subject_score + point_score)
+        return total_score, list(shared), point_diff
+
+    def bfs_find_buddies(self, start_user_id, max_buddies=10):
+        """
+        Breadth-First Search to find study buddies
+        BFS explores level by level - finds closest connections first
+        Time Complexity: O(V + E) where V = vertices, E = edges
+        Demonstrates: BFS algorithm, queue data structure
+        """
+        if start_user_id not in self.graph:
+            return []
+
+        visited = set()
+        queue = deque([start_user_id])
+        visited.add(start_user_id)
+        buddies = []
+        self.traversal_path = [f"BFS Start: {self.user_data[start_user_id]['username']}"]
+        nodes_explored = 0
+        max_depth = 0
+
+        current_depth = 0
+        nodes_at_current_depth = 1
+        nodes_at_next_depth = 0
+
+        while queue and len(buddies) < max_buddies:
+            current_user = queue.popleft()
+            nodes_explored += 1
+            nodes_at_current_depth -= 1
+
+            # Calculate compatibility with all connected users
+            for neighbor_id in self.graph[current_user]:
+                if neighbor_id not in visited:
+                    visited.add(neighbor_id)
+                    queue.append(neighbor_id)
+                    nodes_at_next_depth += 1
+
+                    if neighbor_id != start_user_id:
+                        score, shared, point_diff = self.calculate_compatibility(
+                            start_user_id, neighbor_id
+                        )
+
+                        neighbor = self.user_data[neighbor_id]
+                        buddies.append({
+                            'user_id': neighbor_id,
+                            'username': neighbor['username'],
+                            'points': neighbor['points'],
+                            'compatibility': score,
+                            'shared_subjects': shared,
+                            'point_diff': point_diff,
+                            'depth': current_depth
+                        })
+
+                        self.traversal_path.append(
+                            f"→ {neighbor['username']} (depth {current_depth}, score {score})"
+                        )
+
+            # Track depth levels
+            if nodes_at_current_depth == 0:
+                current_depth += 1
+                max_depth = max(max_depth, current_depth)
+                nodes_at_current_depth = nodes_at_next_depth
+                nodes_at_next_depth = 0
+
+        # Sort by compatibility score
+        buddies.sort(key=lambda x: x['compatibility'], reverse=True)
+
+        return buddies[:max_buddies], {
+            'algorithm': 'BFS (Breadth-First Search)',
+            'nodes_explored': nodes_explored,
+            'max_depth': max_depth,
+            'traversal_path': ' '.join(self.traversal_path)
+        }
+
+    def dfs_find_buddies(self, start_user_id, max_buddies=10):
+        """
+        Depth-First Search to find study buddies
+        DFS explores deeply before backtracking
+        Time Complexity: O(V + E) where V = vertices, E = edges
+        Demonstrates: DFS algorithm, recursion, stack-based traversal
+        """
+        if start_user_id not in self.graph:
+            return []
+
+        visited = set()
+        buddies = []
+        self.traversal_path = [f"DFS Start: {self.user_data[start_user_id]['username']}"]
+        stats = {'nodes_explored': 0, 'max_depth': 0}
+
+        def dfs_recursive(user_id, depth=0):
+            if len(buddies) >= max_buddies:
+                return
+
+            visited.add(user_id)
+            stats['nodes_explored'] += 1
+            stats['max_depth'] = max(stats['max_depth'], depth)
+
+            for neighbor_id in self.graph[user_id]:
+                if neighbor_id not in visited and len(buddies) < max_buddies:
+                    if neighbor_id != start_user_id:
+                        score, shared, point_diff = self.calculate_compatibility(
+                            start_user_id, neighbor_id
+                        )
+
+                        neighbor = self.user_data[neighbor_id]
+                        buddies.append({
+                            'user_id': neighbor_id,
+                            'username': neighbor['username'],
+                            'points': neighbor['points'],
+                            'compatibility': score,
+                            'shared_subjects': shared,
+                            'point_diff': point_diff,
+                            'depth': depth
+                        })
+
+                        self.traversal_path.append(
+                            f"→ {neighbor['username']} (depth {depth}, score {score})"
+                        )
+
+                    dfs_recursive(neighbor_id, depth + 1)
+
+        dfs_recursive(start_user_id)
+
+        # Sort by compatibility score
+        buddies.sort(key=lambda x: x['compatibility'], reverse=True)
+
+        return buddies[:max_buddies], {
+            'algorithm': 'DFS (Depth-First Search)',
+            'nodes_explored': stats['nodes_explored'],
+            'max_depth': stats['max_depth'],
+            'traversal_path': ' '.join(self.traversal_path)
+        }
+
+    def get_graph_density(self):
+        """Calculate graph density (percentage of possible connections that exist)"""
+        num_users = len(self.graph)
+        if num_users <= 1:
+            return 0
+        max_connections = (num_users * (num_users - 1)) / 2
+        return int((self.connections / max_connections * 100)) if max_connections > 0 else 0
+
+
+def build_study_buddy_graph(current_user_id):
+    """
+    Build graph of all users and their potential study buddy connections
+    Uses compatibility threshold to determine edges
+    """
+    graph = StudyBuddyGraph()
+
+    # Get all users
+    users = User.query.all()
+
+    # Add all users as nodes
+    for user in users:
+        subjects = [sw.subject for sw in user.subject_weights]
+        graph.add_user(user.id, user.username, user.points, subjects)
+
+    # Create edges based on compatibility
+    COMPATIBILITY_THRESHOLD = 30  # Only connect users with 30%+ compatibility
+
+    for i, user1 in enumerate(users):
+        for user2 in users[i + 1:]:
+            score, _, _ = graph.calculate_compatibility(user1.id, user2.id)
+            if score >= COMPATIBILITY_THRESHOLD:
+                graph.add_connection(user1.id, user2.id)
+
+    return graph
+
+
+# ============ Route for Study Groups ============
+@app.route('/study_groups')
+def study_groups():
+    """
+    Study Groups page using Graph Algorithms (BFS/DFS)
+    Demonstrates: Graph traversal, compatibility matching, algorithm comparison
+    """
+    if not g.user:
+        return redirect(url_for('login'))
+
+    # Build the study buddy graph
+    graph = build_study_buddy_graph(g.user.id)
+
+    # Use BFS to find study buddies (change to dfs_find_buddies to use DFS)
+    buddies, search_info = graph.bfs_find_buddies(g.user.id, max_buddies=10)
+
+    # Add score classes for visual styling
+    for buddy in buddies:
+        if buddy['compatibility'] >= 70:
+            buddy['score_class'] = 'high'
+        elif buddy['compatibility'] >= 50:
+            buddy['score_class'] = 'medium'
+        else:
+            buddy['score_class'] = 'low'
+
+    # Calculate average path length
+    total_depth = sum(b['depth'] for b in buddies)
+    avg_path_length = round(total_depth / len(buddies), 1) if buddies else 0
+
+    graph_info = {
+        'algorithm': search_info['algorithm'],
+        'nodes_explored': search_info['nodes_explored'],
+        'max_depth': search_info['max_depth'],
+        'connections': graph.connections,
+        'density': graph.get_graph_density(),
+        'avg_path_length': avg_path_length,
+        'traversal_path': search_info['traversal_path']
+    }
+
+    total_users = User.query.count()
+
+    return render_template(
+        'study_groups.html',
+        user=g.user,
+        potential_buddies=buddies,
+        total_users=total_users,
+        graph_info=graph_info
+    )
 # ============ __main__ ============
 if __name__ == '__main__':
     with app.app_context():

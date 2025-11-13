@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Groups - Smart Study Planner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .navbar {
+            background: #000;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            color: white;
+        }
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .groups-container {
+            padding: 40px;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background: #d9d9d9;
+            padding: 30px;
+            border-radius: 0 30px 30px 0;
+            min-height: 600px;
+        }
+        .menu-item {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+        .menu-item:hover {
+            background: #c9c9c9;
+        }
+        .menu-item.active {
+            background: #666;
+            color: white;
+        }
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            background: #888;
+            border-radius: 4px;
+        }
+        .groups-content {
+            flex: 1;
+            padding: 40px;
+        }
+        .groups-content h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .groups-content .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        .algorithm-badge {
+            display: inline-block;
+            background: #000;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 5px;
+        }
+        .stat-card .label {
+            color: #666;
+            font-size: 14px;
+        }
+        .buddy-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .buddy-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .buddy-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .buddy-info {
+            flex: 1;
+        }
+        .buddy-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .buddy-points {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .shared-subjects {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .subject-badge {
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #333;
+        }
+        .compatibility-score {
+            text-align: center;
+            padding: 15px;
+        }
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #000;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 auto 10px;
+        }
+        .score-circle.high { background: #10b981; }
+        .score-circle.medium { background: #f59e0b; }
+        .score-circle.low { background: #6b7280; }
+        .score-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .connect-btn {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .connect-btn:hover {
+            background: #333;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .refresh-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .refresh-btn:hover {
+            background: #e0e0e0;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            background: white;
+            border-radius: 12px;
+        }
+        .graph-visualization {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+        .graph-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .info-item .info-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .info-item .info-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .path-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">✱ {{ user.username }}</div>
+        <div class="nav-links">
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/weight">Subjects</a>
+            <a href="/schedule">Schedule</a>
+            <a href="/study_log">Study Log</a>
+            <a href="/dashboard">Dashboard</a>
+        </div>
+    </div>
+    <div class="groups-container">
+        <div class="sidebar">
+            <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
+            <a href="/weight" class="menu-item"><div class="menu-icon"></div><span>Subjects</span></a>
+            <a href="/schedule" class="menu-item"><div class="menu-icon"></div><span>Schedule</span></a>
+            <a href="/study_log" class="menu-item"><div class="menu-icon"></div><span>Study Log</span></a>
+            <div class="menu-item active"><div class="menu-icon"></div><span>Study Groups</span></div>
+            <a href="/leaderboard" class="menu-item"><div class="menu-icon"></div><span>Leaderboard</span></a>
+        </div>
+        <div class="groups-content">
+            <h1>Study Groups</h1>
+            <p class="subtitle">Find study buddies with similar subjects and skill levels</p>
+            <span class="algorithm-badge">🔍 Powered by BFS/DFS Graph Algorithms</span>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="value">{{ total_users }}</div>
+                    <div class="label">Total Students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">{{ potential_buddies|length }}</div>
+                    <div class="label">Potential Matches</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">{{ graph_info.connections }}</div>
+                    <div class="label">Graph Connections</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">{{ graph_info.avg_path_length }}</div>
+                    <div class="label">Avg Path Length</div>
+                </div>
+            </div>
+
+            <div class="graph-visualization">
+                <h2>Graph Analysis</h2>
+                <div class="graph-info">
+                    <div class="info-item">
+                        <div class="info-label">Algorithm Used</div>
+                        <div class="info-value">{{ graph_info.algorithm }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Nodes Explored</div>
+                        <div class="info-value">{{ graph_info.nodes_explored }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Max Depth</div>
+                        <div class="info-value">{{ graph_info.max_depth }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Graph Density</div>
+                        <div class="info-value">{{ graph_info.density }}%</div>
+                    </div>
+                </div>
+                {% if graph_info.traversal_path %}
+                <div class="path-display">
+                    <strong>Traversal Path:</strong><br>
+                    {{ graph_info.traversal_path }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="section-header">
+                <h2>Recommended Study Buddies</h2>
+                <button class="refresh-btn" onclick="location.reload()">↻ Refresh</button>
+            </div>
+
+            {% if potential_buddies %}
+                {% for buddy in potential_buddies %}
+                    <div class="buddy-card">
+                        <div class="buddy-avatar">{{ buddy.username[0].upper() }}</div>
+                        <div class="buddy-info">
+                            <div class="buddy-name">{{ buddy.username }}</div>
+                            <div class="buddy-points">
+                                {{ buddy.points }} points •
+                                <span style="color: #10b981;">{{ buddy.point_diff }} point difference</span>
+                            </div>
+                            {% if buddy.shared_subjects %}
+                                <div class="shared-subjects">
+                                    {% for subject in buddy.shared_subjects %}
+                                        <span class="subject-badge">📚 {{ subject }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="compatibility-score">
+                            <div class="score-circle {{ buddy.score_class }}">{{ buddy.compatibility }}%</div>
+                            <div class="score-label">Match Score</div>
+                        </div>
+                        <button class="connect-btn" onclick="connectBuddy('{{ buddy.username }}')">Connect</button>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>No study buddies found yet. More students will appear as they join!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function connectBuddy(username) {
+            alert(`Connection request sent to ${username}! (This would integrate with a messaging system)`);
+        }
+    </script>
+</body>
+</html>
