@@ -970,4 +970,4 @@ if __name__ == '__main__':
         print("Database tables created:")
         print(db.metadata.tables.keys())
 
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5050, debug=True)
