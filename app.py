@@ -155,7 +155,82 @@ def login():
 def dashboard():
     if not g.user:
         return redirect(url_for('login'))
-    return render_template('dashboard.html', user=g.user)
+
+    # Get user's subjects with allocations
+    subject_weights = SubjectWeight.query.filter_by(user_id=g.user.id).all()
+
+    # Calculate hours logged per subject
+    subjects_overview = []
+    completed_count = 0
+    in_progress_count = 0
+
+    for sw in subject_weights:
+        # Get total minutes logged for this subject
+        logged_sessions = StudySession.query.filter_by(
+            user_id=g.user.id,
+            subject=sw.subject
+        ).all()
+
+        total_logged_minutes = sum(session.duration_minutes for session in logged_sessions)
+        total_logged_hours = total_logged_minutes / 60
+
+        # Convert allocation from minutes to hours
+        assigned_hours = round(sw.allocation / 60, 1)
+
+        # Determine status
+        if assigned_hours == 0:
+            status = 'Not Assigned'
+            status_class = 'not-started'
+        elif total_logged_hours >= assigned_hours:
+            status = 'Done'
+            status_class = 'done'
+            completed_count += 1
+        elif total_logged_hours > 0:
+            status = 'In Progress'
+            status_class = 'in-progress'
+            in_progress_count += 1
+        else:
+            status = 'Not Started'
+            status_class = 'not-started'
+
+        subjects_overview.append({
+            'subject': sw.subject,
+            'assigned_hours': assigned_hours,
+            'logged_hours': round(total_logged_hours, 1),
+            'status': status,
+            'status_class': status_class
+        })
+
+    # Calculate total study sessions
+    total_sessions = StudySession.query.filter_by(user_id=g.user.id).count()
+
+    # Calculate total study hours
+    all_sessions = StudySession.query.filter_by(user_id=g.user.id).all()
+    total_minutes = sum(session.duration_minutes for session in all_sessions)
+    hours = int(total_minutes // 60)
+    minutes = int(total_minutes % 60)
+    seconds = int((total_minutes % 1) * 60)
+    total_hours_formatted = f"{hours}:{minutes:02d}:{seconds:02d}"
+
+    # Calculate total assigned hours
+    total_assigned_hours = sum(sw.allocation for sw in subject_weights) / 60
+
+    # Build stats dictionary
+    stats = {
+        'total_sessions': total_sessions,
+        'completed_subjects': completed_count,
+        'in_progress_subjects': in_progress_count,
+        'total_hours': total_hours_formatted,
+        'total_assigned_hours': round(total_assigned_hours, 1),
+        'total_subjects': len(subject_weights)
+    }
+
+    return render_template(
+        'dashboard.html',
+        user=g.user,
+        subjects_overview=subjects_overview,
+        stats=stats
+    )
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -451,7 +526,6 @@ def delete_study_session(session_id):
     except Exception as e:
         db.session.rollback()
         return jsonify(error="Failed to delete session"), 500
-
 
 
 # ============ OOP: Tree Node Class ============
@@ -862,6 +936,8 @@ def study_groups():
         total_users=total_users,
         graph_info=graph_info
     )
+
+
 # ============ __main__ ============
 if __name__ == '__main__':
     with app.app_context():

@@ -100,7 +100,7 @@
         }
         .session-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
+            grid-template-columns: 2fr 1fr 1fr;
             gap: 10px;
             padding: 12px 0;
             border-bottom: 1px solid #bbb;
@@ -118,15 +118,14 @@
             font-size: 11px;
             display: inline-block;
         }
-        .status-badge.not-started {
-            background: #000;
+        .status-badge.done {
+            background: #0a0a0a;
         }
         .status-badge.in-progress {
-            background: #000;
+            background: #6b7280;
         }
-        .action-icons {
-            display: flex;
-            gap: 8px;
+        .status-badge.not-started {
+            background: #6b7280;
         }
         .progress-item {
             display: flex;
@@ -223,50 +222,24 @@
             </div>
         </div>
         <div class="dashboard-card card-span-2">
-            <h3>Your study sessions</h3>
+            <h3>Your Subjects Overview</h3>
             <div class="session-table">
                 <div class="session-row header">
                     <div>Subject</div>
-                    <div>Next session</div>
+                    <div>Assigned Hours</div>
                     <div>Status</div>
-                    <div>Next Session</div>
                 </div>
-                <div class="session-row">
-                    <div>ALGORITHMS & DATA STRUCTURES</div>
-                    <div>Today</div>
-                    <div><span class="status-badge in-progress">in progress</span></div>
-                    <div class="action-icons">✗ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>MATHEMATICS FOR DATA MANAGEMENT AND ANALYSIS</div>
-                    <div>Tomorrow</div>
-                    <div><span class="status-badge in-progress">in progress</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>PROBABILITY & STATISTICS FOR DATA MANAGEMENT AND ANALYSIS</div>
-                    <div>Tomorrow</div>
-                    <div><span class="status-badge not-started">not started</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>PROGRAMMING FOR DATA MANAGEMENT & ANALYSIS</div>
-                    <div>14/10/2023</div>
-                    <div><span class="status-badge not-started">not started</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>TECHNOLOGY WITH IMPACT</div>
-                    <div>16/10/2023</div>
-                    <div><span class="status-badge not-started">not started</span></div>
-                    <div class="action-icons">✗ ❓ ▶</div>
-                </div>
-                <div class="session-row">
-                    <div>TIME SERIES ANALYSIS</div>
-                    <div>18/10/2023</div>
-                    <div><span class="status-badge in-progress">in progress</span></div>
-                    <div class="action-icons">✓ ❓ ▶</div>
-                </div>
+                {% for subject_data in subjects_overview %}
+                    <div class="session-row">
+                        <div>{{ subject_data.subject }}</div>
+                        <div>{{ subject_data.assigned_hours }} h</div>
+                        <div>
+                            <span class="status-badge {{ subject_data.status_class }}">
+                                {{ subject_data.status }}
+                            </span>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
         <div class="dashboard-card-updates">
@@ -306,27 +279,27 @@
             <h3>Your progress</h3>
             <div class="progress-item">
                 <span>Study sessions</span>
-                <strong>5</strong>
+                <strong>{{ stats.total_sessions }}</strong>
             </div>
             <div class="progress-item">
-                <span>Completed sessions</span>
-                <strong>12</strong>
+                <span>Completed subjects</span>
+                <strong>{{ stats.completed_subjects }}</strong>
             </div>
             <div class="progress-item">
-                <span>Pending tasks</span>
-                <strong>9</strong>
+                <span>In progress subjects</span>
+                <strong>{{ stats.in_progress_subjects }}</strong>
             </div>
             <div class="progress-item">
                 <span>Total study hours</span>
-                <strong>12:45:30</strong>
+                <strong>{{ stats.total_hours }}</strong>
             </div>
             <div class="progress-item">
-                <span>Upcoming sessions</span>
-                <strong>2</strong>
+                <span>Total assigned hours</span>
+                <strong>{{ stats.total_assigned_hours }} h</strong>
             </div>
             <div class="progress-item">
-                <span>Organized subjects</span>
-                <strong>1</strong>
+                <span>Total subjects</span>
+                <strong>{{ stats.total_subjects }}</strong>
             </div>
         </div>
         <div class="dashboard-card-updates">
@@ -334,39 +307,33 @@
             <div class="session-table">
                 <div class="session-row header">
                     <div>Subject</div>
-                    <div>Weightag</div>
+                    <div>Weight</div>
                     <div>Status</div>
-                    <div>Study Goals</div>
                 </div>
                 <div class="session-row">
                     <div>Interactive Calendar</div>
-                    <div>01/05/2023</div>
+                    <div>High</div>
                     <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">View</button></div>
-                    <div>✓ ⓘ ▶</div>
                 </div>
                 <div class="session-row">
                     <div>Progress Tracker</div>
-                    <div>15/05/2023</div>
+                    <div>Medium</div>
                     <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">Edit</button></div>
-                    <div>✓ ⓘ ▶</div>
                 </div>
                 <div class="session-row">
                     <div>Study Groups</div>
-                    <div>01/06/2023</div>
+                    <div>High</div>
                     <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">View All</button></div>
-                    <div>✓ ⓘ ▶</div>
                 </div>
                 <div class="session-row">
                     <div>Personalized Scheduling</div>
-                    <div>01/07/2023</div>
+                    <div>Low</div>
                     <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">Join</button></div>
-                    <div>✗ ⓘ ▶</div>
                 </div>
                 <div class="session-row">
                     <div>Study Cases</div>
-                    <div>01/07/2023</div>
+                    <div>Medium</div>
                     <div><button style="background: #000; color: white; padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;">Join</button></div>
-                    <div>✗ ⓘ ▶</div>
                 </div>
             </div>
         </div>
