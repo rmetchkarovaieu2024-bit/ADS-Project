@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Log - Smart Study Planner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .navbar {
+            background: #000;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            color: white;
+        }
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .study-container {
+            padding: 40px;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background: #d9d9d9;
+            padding: 30px;
+            border-radius: 0 30px 30px 0;
+            min-height: 600px;
+        }
+        .menu-item {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+        .menu-item:hover {
+            background: #c9c9c9;
+        }
+        .menu-item.active {
+            background: #666;
+            color: white;
+        }
+        .menu-item-no {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            color: #a3a3a3;
+        }
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            background: #888;
+            border-radius: 4px;
+        }
+        .study-content {
+            flex: 1;
+            padding: 40px;
+        }
+        .study-content h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .study-content .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 5px;
+        }
+        .stat-card .label {
+            color: #666;
+            font-size: 14px;
+        }
+        .log-session-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .log-session-card h2 {
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+        .time-presets {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .time-preset {
+            background: #f0f0f0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .time-preset:hover {
+            background: #e0e0e0;
+        }
+        .log-button {
+            background: #000;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        .log-button:hover {
+            background: #333;
+        }
+        .recent-sessions {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .recent-sessions h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .session-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+        .session-item:hover {
+            background: #e9ecef;
+        }
+        .session-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+        .session-details {
+            flex: 1;
+        }
+        .session-subject {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+        .session-time {
+            font-size: 12px;
+            color: #666;
+        }
+        .session-points {
+            font-weight: 700;
+            color: #1976d2;
+            font-size: 16px;
+        }
+        .session-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .session-delete:hover {
+            background: #c82333;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">✱ {{ user.username }}</div>
+        <div class="nav-links">
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/weight">Subjects</a>
+            <a href="/schedule">Schedule</a>
+            <a href="/study_groups">Study Groups</a>
+            <a href="/dashboard">Dashboard</a>
+        </div>
+    </div>
+    <div class="study-container">
+        <div class="sidebar">
+            <a href="/dashboard" class="menu-item"><div class="menu-icon"></div><span>Dashboard</span></a>
+            <a href="/weight" class="menu-item"><div class="menu-icon"></div><span>Subjects</span></a>
+            <a href="/schedule" class="menu-item"><div class="menu-icon"></div><span>Schedule</span></a>
+            <div class="menu-item active"><div class="menu-icon"></div><span>Study Log</span></div>
+            <a href="/study_groups" class="menu-item"><div class="menu-icon"></div><span>Study Groups</span></a>
+            <a href="/leaderboard" class="menu-item"><div class="menu-icon"></div><span>Leaderboard</span></a>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Milestones</span></div>
+            <div class="menu-item-no"><div class="menu-icon"></div><span>Notifications</span></div>
+        </div>
+        <div class="study-content">
+            <h1>Study Log</h1>
+            <p class="subtitle">Track your study time and earn points</p>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="value">{{ user.points }}</div>
+                    <div class="label">Total Points</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">{{ total_hours }}</div>
+                    <div class="label">Total Hours</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">{{ total_sessions }}</div>
+                    <div class="label">Study Sessions</div>
+                </div>
+            </div>
+
+            <div class="log-session-card">
+                <h2>Log a Study Session</h2>
+                <div id="success-message" class="success-message"></div>
+
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <select id="subject">
+                        {% for subject in subjects %}
+                            <option value="{{ subject }}">{{ subject }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Duration (minutes)</label>
+                    <input type="number" id="duration" placeholder="Enter minutes" min="1" max="600">
+                    <div class="time-presets">
+                        <button class="time-preset" onclick="setDuration(15)">15 min</button>
+                        <button class="time-preset" onclick="setDuration(30)">30 min</button>
+                        <button class="time-preset" onclick="setDuration(45)">45 min</button>
+                        <button class="time-preset" onclick="setDuration(60)">1 hour</button>
+                        <button class="time-preset" onclick="setDuration(90)">1.5 hours</button>
+                        <button class="time-preset" onclick="setDuration(120)">2 hours</button>
+                    </div>
+                </div>
+
+                <button class="log-button" onclick="logSession()">Log Study Session</button>
+            </div>
+
+            <div class="recent-sessions">
+                <h2>Recent Sessions</h2>
+                {% if recent_sessions %}
+                    {% for session in recent_sessions %}
+                        <div class="session-item">
+                            <div class="session-icon">{{ session.duration_minutes }}</div>
+                            <div class="session-details">
+                                <div class="session-subject">{{ session.subject }}</div>
+                                <div class="session-time">
+                                    {{ session.date_logged.strftime('%B %d, %Y at %I:%M %p') }}
+                                </div>
+                            </div>
+                            <div class="session-points">+{{ session.points_earned }} pts</div>
+                            <button class="session-delete" onclick="deleteSession({{ session.id }})">Delete</button>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <p>No study sessions yet. Log your first session above!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setDuration(minutes) {
+            document.getElementById('duration').value = minutes;
+        }
+
+        function logSession() {
+            const subject = document.getElementById('subject').value;
+            const duration = document.getElementById('duration').value;
+
+            if (!duration || duration <= 0) {
+                alert('Please enter a valid duration');
+                return;
+            }
+
+            fetch('/log_study_session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subject: subject,
+                    duration: parseInt(duration)
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    const successMsg = document.getElementById('success-message');
+                    successMsg.textContent = data.message;
+                    successMsg.style.display = 'block';
+
+                    // Clear form
+                    document.getElementById('duration').value = '';
+
+                    // Reload page after 1 second
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to log session');
+            });
+        }
+
+        function deleteSession(sessionId) {
+            if (!confirm('Are you sure you want to delete this session? Points will be removed.')) {
+                return;
+            }
+
+            fetch(`/delete_study_session/${sessionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    alert(data.message);
+                    location.reload();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to delete session');
+            });
+        }
+    </script>
+</body>
+</html>
