@@ -243,8 +243,7 @@ def register():
             flash('Username already exists. Please choose another.')
             return render_template('register.html')
 
-        # Random initial points for demo
-        initial_points = random.randint(100, 1000)
+        initial_points = 0
         new_user = User(username=username, password=password, points=initial_points)
         db.session.add(new_user)
         db.session.commit()
