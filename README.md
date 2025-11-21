@@ -435,14 +435,14 @@ The application comes pre-configured with six subjects (you can modify these in 
 
 ### **Development Team**
 
-- **RayaM5** - Lead Developer & Database Design
-- **rmetchkarovaieu2024-bit** - Algorithm Implementation & UI/UX
+- **rmetchkarovaieu2024-bit** - Lead Developer & Database Design,  Algorithm Implementation & UI/UX
+- **alp47** - Developer
 
 ### **Course Information**
 
 - **Course**: BDBA25 - Algorithms & Data Structures (ADS)
 - **Institution**: IEU Business School
-- **Academic Year**: 2024-2025
+- **Academic Year**: 2025-2026
 - **Project**: Smart Study Planner (Final Project)
 
 ### **Acknowledgments**
@@ -451,6 +451,7 @@ Special thanks to:
 - Course instructors for guidance on data structures and algorithms
 - Flask community for extensive documentation
 - Open-source contributors for inspiration and best practices
+- The team behind the scenes that helped develop the project 
 
 ---
 
@@ -479,6 +480,9 @@ For questions, issues, or suggestions:
 - **GitHub Issues**: Open an issue on the repository
 - **Email**: Contact through IEU Business School portal
 - **Documentation**: Refer to this README and inline code comments
+
+  
+- PLEASE DON'T CONTACT US, we have no idea what we are doing 
 
 ---
 
