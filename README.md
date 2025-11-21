@@ -483,7 +483,7 @@ For questions, issues, or suggestions:
 - **Documentation**: Refer to this README and inline code comments
 
   
-- PLEASE DON'T CONTACT US, we have no idea what we are doing 
+- DON'T CONTACT US, we are not liable for any misuse or damages done
 
 ---
 
