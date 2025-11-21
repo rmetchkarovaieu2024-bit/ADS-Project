@@ -437,6 +437,7 @@ The application comes pre-configured with six subjects (you can modify these in 
 
 - **rmetchkarovaieu2024-bit** - Lead Developer & Database Design,  Algorithm Implementation & UI/UX
 - **alp47** - Developer
+- **alex10020** -Proof Reader
 
 ### **Course Information**
 
