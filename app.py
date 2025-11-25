@@ -174,10 +174,10 @@ def dashboard():
         total_logged_minutes = sum(session.duration_minutes for session in logged_sessions)
         total_logged_hours = total_logged_minutes / 60
 
-        # Convert allocation from minutes to hours
+        # Convert minutes -> hours
         assigned_hours = round(sw.allocation / 60, 1)
 
-        # Determine status
+        # status
         if assigned_hours == 0:
             status = 'Not Assigned'
             status_class = 'not-started'
@@ -201,10 +201,10 @@ def dashboard():
             'status_class': status_class
         })
 
-    # Calculate total study sessions
+    #  total study sessions
     total_sessions = StudySession.query.filter_by(user_id=g.user.id).count()
 
-    # Calculate total study hours
+    #  total study hours
     all_sessions = StudySession.query.filter_by(user_id=g.user.id).all()
     total_minutes = sum(session.duration_minutes for session in all_sessions)
     hours = int(total_minutes // 60)
@@ -212,7 +212,7 @@ def dashboard():
     seconds = int((total_minutes % 1) * 60)
     total_hours_formatted = f"{hours}:{minutes:02d}:{seconds:02d}"
 
-    # Calculate total assigned hours
+    #  total assigned hours
     total_assigned_hours = sum(sw.allocation for sw in subject_weights) / 60
 
     # Build stats dictionary
@@ -297,7 +297,6 @@ def leaderboard():
 
 @app.route('/add_points', methods=['POST'])
 def add_points():
-    """Add points to current user"""
     if not g.user:
         return jsonify(error="Not logged in"), 403
 
@@ -419,7 +418,6 @@ def save_availability():
 
 @app.route('/study_log')
 def study_log():
-    """Study log page where users can log their study sessions"""
     if not g.user:
         return redirect(url_for('login'))
 
@@ -427,7 +425,6 @@ def study_log():
     subjects = SubjectWeight.query.filter_by(user_id=g.user.id).all()
     subject_list = [sw.subject for sw in subjects]
 
-    # If no subjects, use defaults
     if not subject_list:
         subject_list = default_subjects
 
@@ -436,7 +433,7 @@ def study_log():
         StudySession.date_logged.desc()
     ).limit(10).all()
 
-    # Calculate total study time and points
+    #  total study time and points
     all_sessions = StudySession.query.filter_by(user_id=g.user.id).all()
     total_minutes = sum(s.duration_minutes for s in all_sessions)
     total_hours = total_minutes / 60
@@ -453,7 +450,6 @@ def study_log():
 
 @app.route('/log_study_session', methods=['POST'])
 def log_study_session():
-    """Log a new study session and award points"""
     if not g.user:
         return jsonify(error="Not logged in"), 403
 
@@ -474,7 +470,7 @@ def log_study_session():
     # Calculate points: 1 point per minute of study
     points_earned = duration
 
-    # Create study session record
+    #  study session record
     session_record = StudySession(
         user_id=g.user.id,
         subject=subject,
@@ -483,7 +479,7 @@ def log_study_session():
     )
     db.session.add(session_record)
 
-    # Add points to user's total
+    # Add points
     g.user.points += points_earned
 
     try:
@@ -500,7 +496,6 @@ def log_study_session():
 
 @app.route('/delete_study_session/<int:session_id>', methods=['POST'])
 def delete_study_session(session_id):
-    """Delete a study session and remove points"""
     if not g.user:
         return jsonify(error="Not logged in"), 403
 
@@ -512,7 +507,7 @@ def delete_study_session(session_id):
     if session_record.user_id != g.user.id:
         return jsonify(error="Unauthorized"), 403
 
-    # Remove points from user
+    # Remove points
     g.user.points -= session_record.points_earned
     if g.user.points < 0:
         g.user.points = 0
@@ -623,11 +618,9 @@ class LeaderboardBST:
             self._reverse_inorder_traversal(node.left, result)
 
     def get_tree_height(self):
-        """Calculate height of tree"""
         return self._calculate_height(self.root)
 
     def _calculate_height(self, node):
-        """Recursive height calculation"""
         if node is None:
             return 0
         left_height = self._calculate_height(node.left)
@@ -635,23 +628,20 @@ class LeaderboardBST:
         return 1 + max(left_height, right_height)
 
     def count_nodes(self):
-        """Count total nodes in tree"""
         return self._count_nodes_recursive(self.root)
 
     def _count_nodes_recursive(self, node):
-        """Recursive node counting"""
         if node is None:
             return 0
         return 1 + self._count_nodes_recursive(node.left) + self._count_nodes_recursive(node.right)
 
-    def get_tree_for_display(self):
-        """Convert tree to nested dict for template rendering"""
+    def get_tree_for_display(self): # convert tree to nested dict for template rendering
         if self.root is None:
             return None
         return self._node_to_dict(self.root)
 
-    def _node_to_dict(self, node):
-        """Convert a node and its children to dictionary"""
+    def _node_to_dict(self, node):    #  convert a node and its children to dictionary
+
         if node is None:
             return None
         return {
@@ -679,8 +669,7 @@ class StudyBuddyGraph:
         self.connections = 0
         self.traversal_path = []
 
-    def add_user(self, user_id, username, points, subjects):
-        """Add a user node to the graph"""
+    def add_user(self, user_id, username, points, subjects): # add user to ggraph
         if user_id not in self.graph:
             self.graph[user_id] = []
             self.user_data[user_id] = {
@@ -690,10 +679,6 @@ class StudyBuddyGraph:
             }
 
     def add_connection(self, user1_id, user2_id):
-        """
-        Add bidirectional edge between two users
-        Represents potential study buddy relationship
-        """
         if user1_id in self.graph and user2_id in self.graph:
             if user2_id not in self.graph[user1_id]:
                 self.graph[user1_id].append(user2_id)
@@ -701,10 +686,6 @@ class StudyBuddyGraph:
                 self.connections += 1
 
     def calculate_compatibility(self, user1_id, user2_id):
-        """
-        Calculate compatibility score between two users
-        Based on: shared subjects and point similarity
-        """
         user1 = self.user_data[user1_id]
         user2 = self.user_data[user2_id]
 
@@ -851,8 +832,7 @@ class StudyBuddyGraph:
             'traversal_path': ' '.join(self.traversal_path)
         }
 
-    def get_graph_density(self):
-        """Calculate graph density (percentage of possible connections that exist)"""
+    def get_graph_density(self):# calculate graph density (% of possible connections)
         num_users = len(self.graph)
         if num_users <= 1:
             return 0
@@ -861,17 +841,11 @@ class StudyBuddyGraph:
 
 
 def build_study_buddy_graph(current_user_id):
-    """
-    Build graph of all users and their potential study buddy connections
-    Uses compatibility threshold to determine edges
-    """
     graph = StudyBuddyGraph()
 
-    # Get all users
     users = User.query.all()
 
-    # Add all users as nodes
-    for user in users:
+    for user in users: # userss as nodes
         subjects = [sw.subject for sw in user.subject_weights]
         graph.add_user(user.id, user.username, user.points, subjects)
 
@@ -890,10 +864,6 @@ def build_study_buddy_graph(current_user_id):
 # ============ Route for Study Groups ============
 @app.route('/study_groups')
 def study_groups():
-    """
-    Study Groups page using Graph Algorithms (BFS/DFS)
-    Demonstrates: Graph traversal, compatibility matching, algorithm comparison
-    """
     if not g.user:
         return redirect(url_for('login'))
 
@@ -912,7 +882,7 @@ def study_groups():
         else:
             buddy['score_class'] = 'low'
 
-    # Calculate average path length
+    # Calc average path length
     total_depth = sum(b['depth'] for b in buddies)
     avg_path_length = round(total_depth / len(buddies), 1) if buddies else 0
 
@@ -942,6 +912,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
 
+### This was a test
         # Add points column to existing users if it doesn't exist
         try:
             from sqlalchemy import inspect
